@@ -1,9 +1,6 @@
 package co.deepthought.quickscan;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Holds a precomputed index of documents
@@ -11,14 +8,14 @@ import java.util.Map;
 public class Index {
 
     public final static int LONG_BITS = 64;
-    public final static int MAX_TAGS = LONG_BITS * LONG_BITS;
+    public final static int MAX_TAGS = LONG_BITS * LONG_BITS - 1;
     public final static int PAGE_SIZE = LONG_BITS * LONG_BITS;
 
-    private final Map<String, Integer> fieldIndexes;
-    private final Map<String, Integer> scoreIndexes;
-    private final Map<String, Integer> tagIndexes;
+    protected final Map<String, Integer> fieldIndexes;
+    protected final Map<String, Integer> scoreIndexes;
+    protected final Map<String, Integer> tagIndexes;
 
-    private final IndexPage[] pages;
+    protected final IndexPage[] pages;
 
     public Index(final List<Document> documents) {
         this.fieldIndexes = new HashMap<String, Integer>();
@@ -36,6 +33,25 @@ public class Index {
         for(int pageIndex = 0; pageIndex < this.pages.length; pageIndex++) {
             this.pages[pageIndex] = new IndexPage(pageIndex, indexIdentifiers, indexFields, indexTags);
         }
+    }
+
+    public int pageCount(final int numItems, final int numPerPage) {
+        return (int) Math.ceil(numItems / (double) numPerPage);
+    }
+
+    /**
+     * TODO: need to figure out a proper signature
+     * TODO: figure out how to parllelize if necessary
+     * @return the set of matching identifiers
+     */
+    public Set<String> scan(final Query query) {
+        final NormalizedQuery normalizedQuery = new NormalizedQuery(this, query);
+        final Set<String> results = new HashSet<String>();
+        for(final IndexPage page : this.pages) {
+            final Set<String> subResults = page.scan(normalizedQuery);
+            results.addAll(subResults);
+        }
+        return results;
     }
 
     private void addIdentifiersIfAbsent(final Iterable<String> names, final Map<String, Integer> nameMap) {
@@ -71,10 +87,6 @@ public class Index {
         }
     }
 
-    private int pageCount(final int numItems, final int numPerPage) {
-        return (int) Math.ceil(numItems / numPerPage);
-    }
-
     private void processIdentifiers(final List<Document> documents) {
         for(final Document document : documents) {
             this.addIdentifiersIfAbsent(document.fields.keySet(), this.fieldIndexes);
@@ -99,7 +111,7 @@ public class Index {
         final long[] normalized = new long[this.pageCount(tagIndexes.size(), Index.LONG_BITS)];
         for(final String tag : document.tags) {
             final int tagIndex = tagIndexes.get(tag);
-            normalized[tagIndex / Index.LONG_BITS] |= (1 << (tagIndex % Index.LONG_BITS));
+            normalized[tagIndex / Index.LONG_BITS] |= (1L << (tagIndex % Index.LONG_BITS));
         }
         return normalized;
     }
