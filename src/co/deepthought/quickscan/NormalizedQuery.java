@@ -1,9 +1,6 @@
 package co.deepthought.quickscan;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Scan an index against a particular query.
@@ -14,6 +11,7 @@ public class NormalizedQuery {
     protected final List<List<TagFilter>> disjunctiveTagFilters;
     protected final List<FieldFilter> maxFilters;
     protected final List<FieldFilter> minFilters;
+    protected final double[] preferences;
 
     public NormalizedQuery(final Index index, final Query query) {
         this.maxFilters = this.normalizeFieldFilters(index, query.fieldMaxs);
@@ -23,6 +21,7 @@ public class NormalizedQuery {
         for(final Set<String> tags : query.disjunctiveTags) {
             this.disjunctiveTagFilters.add(this.normalizeTagFilters(index, tags));
         }
+        this.preferences = this.normalizePreferences(index, query.preferences);
     }
 
     private List<FieldFilter> normalizeFieldFilters(final Index index, final Map<String, Integer> filters) {
@@ -30,6 +29,16 @@ public class NormalizedQuery {
         for(final Map.Entry<String, Integer> filter : filters.entrySet()) {
             // TODO: if the field doesn't exist?
             normalized.add(new FieldFilter(index.fieldIndexes.get(filter.getKey()), filter.getValue()));
+        }
+        return normalized;
+    }
+
+    private double[] normalizePreferences(final Index index, final Map<String, Double> preferences) {
+        final double[] normalized = new double[index.scoreIndexes.size()];
+        Arrays.fill(normalized, 1.); // assume 1 if not present
+        for(final Map.Entry<String, Double> preference : preferences.entrySet()) {
+            // TODO: if the field doesn't exist?
+            normalized[index.scoreIndexes.get(preference.getKey())] = preference.getValue();
         }
         return normalized;
     }

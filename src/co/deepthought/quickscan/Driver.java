@@ -1,7 +1,5 @@
 package co.deepthought.quickscan;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import java.io.*;
@@ -40,9 +38,23 @@ public class Driver {
             query.filterFieldMin("bedCount", generator.nextInt(3));
             query.filterTagsAll("amenity:doorman", "amenity:elevator");
             query.filterTagsAny("area:flatiron", "area:harlem");
-            index.scan(query);
+            query.setPreference("age", 1);
+            query.setPreference("score:1", 0.2);
+            query.setPreference("score:2", 0.2);
+            query.setPreference("score:3", 0.2);
+            query.setPreference("score:4", 0.2);
+            query.setPreference("score:5", 0.2);
+            Collection<String> result = index.scan(query, 100);
             end = System.nanoTime();
             System.out.println("Full query:" + (end-start));
+        }
+
+//        Driver.printDocuments(data, result);
+    }
+
+    private static void printDocuments(final Map<String, Map<String, Object>> data, final Collection<String> ids) {
+        for(final String id : ids) {
+            System.out.println(data.get(id));
         }
     }
 

@@ -8,8 +8,8 @@ import java.util.*;
 public class Index {
 
     public final static int LONG_BITS = 64;
-    public final static int MAX_TAGS = LONG_BITS * LONG_BITS - 1;
     public final static int PAGE_SIZE = LONG_BITS * LONG_BITS;
+    public final static int SCORE_BUCKETS = 256;
 
     protected final Map<String, Integer> fieldIndexes;
     protected final Map<String, Integer> scoreIndexes;
@@ -25,13 +25,20 @@ public class Index {
 
         final String[] indexIdentifiers = new String[documents.size()];
         final int[][] indexFields = new int[this.fieldIndexes.size()][documents.size()];
-        final long[][] indexTags = new long[this.pageCount(tagIndexes.size(), Index.LONG_BITS)][documents.size()];
-        // TODO: index scores
-        this.indexDocuments(documents, indexIdentifiers, indexFields, indexTags);
+        final long[][] indexTags = new long[this.pageCount(1+tagIndexes.size(), Index.LONG_BITS)][documents.size()];
+        final int scoreCount = this.scoreIndexes.size();
+        final double[] indexScores = new double[2*scoreCount*documents.size()];
+        this.indexDocuments(documents, indexIdentifiers, indexFields, indexTags, indexScores, scoreCount);
 
         this.pages = new IndexPage[this.pageCount(documents.size(), Index.PAGE_SIZE)];
         for(int pageIndex = 0; pageIndex < this.pages.length; pageIndex++) {
-            this.pages[pageIndex] = new IndexPage(pageIndex, indexIdentifiers, indexFields, indexTags);
+            this.pages[pageIndex] = new IndexPage(
+                pageIndex,
+                indexIdentifiers,
+                indexFields,
+                indexTags,
+                indexScores,
+                scoreCount);
         }
     }
 
@@ -40,18 +47,32 @@ public class Index {
     }
 
     /**
-     * TODO: need to figure out a proper signature
-     * TODO: figure out how to parllelize if necessary
-     * @return the set of matching identifiers
+     * Scan the index using the query and return up to limit results.
+     * TODO: skipping?
      */
-    public Set<String> scan(final Query query) {
+    public Collection<String> scan(final Query query, final int limit) {
+
         final NormalizedQuery normalizedQuery = new NormalizedQuery(this, query);
-        final Set<String> results = new HashSet<String>();
-        for(final IndexPage page : this.pages) {
-            final Set<String> subResults = page.scan(normalizedQuery);
-            results.addAll(subResults);
+
+        final List<String>[] buckets = (List<String>[]) new List[Index.SCORE_BUCKETS]; // I don't miss shit like this either
+        for(int i = 0; i < Index.SCORE_BUCKETS; i++) {
+            buckets[i] = new LinkedList<String>();
         }
-        return results;
+
+        for(final IndexPage page : this.pages) {
+            page.scan(normalizedQuery, buckets);
+        }
+
+        final Set<String> response = new LinkedHashSet<String>();
+        for(int i = Index.SCORE_BUCKETS - 1; i >= 0; i--) {
+            for(final String matchId : buckets[i]) {
+                if(response.size() < limit) {
+                    response.add(matchId);
+                }
+            }
+        }
+
+        return response;
     }
 
     private void addIdentifiersIfAbsent(final Iterable<String> names, final Map<String, Integer> nameMap) {
@@ -66,7 +87,9 @@ public class Index {
             final List<Document> documents,
             final String[] indexIdentifiers,
             final int[][] indexFields,
-            final long[][] indexTags) {
+            final long[][] indexTags,
+            final double[] indexScores,
+            final int  scoreCount) {
         int documentCounter = 0;
         for(final Document document : documents) {
             indexIdentifiers[documentCounter] = document.identifier;
@@ -76,12 +99,16 @@ public class Index {
                 indexFields[fieldIndex][documentCounter] = normalizedFields[fieldIndex];
             }
 
-            final long[] normalziedTags = this.normalizeTags(document);
-            for(int tagIndex = 0; tagIndex < normalziedTags.length; tagIndex++) {
-                indexTags[tagIndex][documentCounter] = normalziedTags[tagIndex];
+            final long[] normalizedTags = this.normalizeTags(document);
+            for(int tagIndex = 0; tagIndex < normalizedTags.length; tagIndex++) {
+                indexTags[tagIndex][documentCounter] = normalizedTags[tagIndex];
             }
 
-            // TODO: normalize and copy scores
+            final int scoreStart = 2 * scoreCount * documentCounter;
+            final double[] normalizedScores = this.normalizeScores(document, scoreCount);
+            for(int scoreIndex = 0; scoreIndex < 2 * scoreCount; scoreIndex++) {
+                indexScores[scoreStart + scoreIndex] = normalizedScores[scoreIndex];
+            }
 
             documentCounter++;
         }
@@ -92,10 +119,6 @@ public class Index {
             this.addIdentifiersIfAbsent(document.fields.keySet(), this.fieldIndexes);
             this.addIdentifiersIfAbsent(document.scores.keySet(), this.scoreIndexes);
             this.addIdentifiersIfAbsent(document.tags, this.tagIndexes);
-        }
-
-        if(this.tagIndexes.size() >= Index.MAX_TAGS) {
-            throw new TooManyTagsException();
         }
     }
 
@@ -112,6 +135,17 @@ public class Index {
         for(final String tag : document.tags) {
             final int tagIndex = tagIndexes.get(tag);
             normalized[tagIndex / Index.LONG_BITS] |= (1L << (tagIndex % Index.LONG_BITS));
+        }
+        return normalized;
+    }
+
+    private double[] normalizeScores(final Document document, final int scoreCount) {
+        final double[] normalized = new double[2*scoreCount];
+        for(Map.Entry<String, Double> scoreEntry : document.scores.entrySet()) {
+            normalized[2*this.scoreIndexes.get(scoreEntry.getKey())] = scoreEntry.getValue();
+        }
+        for(Map.Entry<String, Double> scoreConfidenceEntry : document.scoreConfidences.entrySet()) {
+            normalized[1+2*this.scoreIndexes.get(scoreConfidenceEntry.getKey())] = scoreConfidenceEntry.getValue();
         }
         return normalized;
     }

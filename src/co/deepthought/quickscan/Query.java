@@ -7,16 +7,18 @@ import java.util.*;
  */
 public class Query {
 
-    protected final Map<String, Integer> fieldMaxs;
-    protected final Map<String, Integer> fieldMins;
     protected final Set<String> conjunctiveTags;
     protected final List<Set<String>> disjunctiveTags;
+    protected final Map<String, Integer> fieldMaxs;
+    protected final Map<String, Integer> fieldMins;
+    protected final Map<String, Double> preferences;
 
     public Query() {
         this.fieldMaxs = new HashMap<String, Integer>();
         this.fieldMins = new HashMap<String, Integer>();
         this.conjunctiveTags = new HashSet<String>();
         this.disjunctiveTags = new ArrayList<Set<String>>();
+        this.preferences = new HashMap<String, Double>();
     }
 
     /**
@@ -78,6 +80,10 @@ public class Query {
             tagSet.add(tag);
         }
         this.disjunctiveTags.add(tagSet);
+    }
+
+    public void setPreference(final String scoreField, final double weight) {
+        this.preferences.put(scoreField, weight);
     }
 
 }

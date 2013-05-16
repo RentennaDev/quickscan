@@ -1,9 +1,6 @@
 package co.deepthought.quickscan;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An index page contains some scannable chunk of document index data
@@ -15,14 +12,17 @@ public class IndexPage {
     protected final String[] indexIdentifiers;
     protected final int[][] indexFields;
     protected final long[][] indexTags;
-    // TODO: scores
+    protected final double[] indexScores;
     protected final int dataBoundary;
+    protected final int scoreCount;
 
     public IndexPage(
             final int page,
             final String[] indexIdentifiers,
             final int[][] indexFields,
-            final long[][] indexTags) {
+            final long[][] indexTags,
+            final double[] indexScores,
+            final int scoreCount) {
         final int pageStart = page * Index.PAGE_SIZE;
         final int pageEnd = pageStart + Index.PAGE_SIZE;
         this.dataBoundary = Math.min(pageEnd, indexIdentifiers.length) - pageStart;
@@ -39,29 +39,36 @@ public class IndexPage {
             this.indexTags[tagIndex] = Arrays.copyOfRange(indexTags[tagIndex], pageStart, pageEnd);
         }
 
-        // TODO: get the score range
+        this.scoreCount = scoreCount;
+        this.indexScores = Arrays.copyOfRange(indexScores, 2 * scoreCount * pageStart, 2 * scoreCount * pageEnd);
     }
 
     /**
-     * TODO: need to figure out a proper signature
-     * TODO: figure out how to parllelize if necessary
-     * @return the set of matching identifiers
+     * Scan into the provided buckets.
      */
-    public Set<String> scan(final NormalizedQuery query) {
-        long start, end;
-
-        start = System.nanoTime();
+    public void scan(final NormalizedQuery query, final List<String>[] results) {
         final boolean[] matches = this.filter(query);
-        end = System.nanoTime();
-        System.out.println("scantime: " + (end-start));
 
-        final Set<String> matching = new HashSet<String>();
-        for(int i = 0; i < Index.PAGE_SIZE; i++) {
-            if(matches[i]) {
-                matching.add(this.indexIdentifiers[i]);
+        for(int documentIndex = 0; documentIndex < Index.PAGE_SIZE; documentIndex++) {
+            if(matches[documentIndex]) {
+                final int startIndex = 2 * scoreCount * documentIndex;
+                double scoreSum = 0;
+                double weightSum = 0;
+                for(int scoreIndex = 0; scoreIndex < this.scoreCount; scoreIndex++) {
+                    final int offset = 2 * scoreIndex;
+                    final double weight = this.indexScores[offset + startIndex + 1] * query.preferences[scoreIndex];
+                    weightSum += weight;
+                    scoreSum += weight * this.indexScores[offset + startIndex];
+                }
+                if(weightSum > 0) {
+                    final int bucket = (int)(Index.SCORE_BUCKETS * scoreSum / weightSum); // hopefully never above 1!
+                    results[bucket].add(this.indexIdentifiers[documentIndex]);
+                }
+                else {
+                    results[0].add(this.indexIdentifiers[documentIndex]);
+                }
             }
         }
-        return matching;
     }
 
     private boolean[] filter(final NormalizedQuery query) {
@@ -96,7 +103,7 @@ public class IndexPage {
     }
 
     private void fitlerDisjunctive(final boolean[] matches, final List<TagFilter> filters) {
-        final boolean[] submatches = new boolean[Index.PAGE_SIZE]; // TODO: measure performance, this could be costly
+        final boolean[] submatches = new boolean[Index.PAGE_SIZE];
         for(final TagFilter filter : filters) {
             final long mask = filter.mask;
             final long[] values = this.indexTags[filter.tagIndex];
@@ -104,7 +111,6 @@ public class IndexPage {
                 submatches[i] |= ((values[i] & mask) != 0L);
             }
         }
-        // TODO: here's a place where the bitset could make us faster by a factor of 64!
         for(int i = 0; i < Index.PAGE_SIZE; i++) {
             matches[i] &= submatches[i];
         }
