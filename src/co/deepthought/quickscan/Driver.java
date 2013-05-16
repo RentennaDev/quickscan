@@ -35,7 +35,6 @@ public class Driver {
         query.filterFieldRange("price", 1500, 2500);
         query.filterFieldMin("bedCount", generator.nextInt(3));
         query.filterTagsAll("amenity:doorman", "amenity:elevator");
-        query.filterTagsAny("area:flatiron", "area:harlem");
         query.setPreference("age", 1);
         query.setPreference("score:1", 0.2);
         query.setPreference("score:2", 0.2);
@@ -78,8 +77,7 @@ public class Driver {
                 final Map<String, Object> property = (Map<String, Object>) JSONValue.parse(line);
                 final List<String> areas = (List<String>) property.get("areas");
                 final List<?> listings = (List<?>) property.get("listings");
-                // limit to nyc for now!
-                if(areas.contains("nyc") && !listings.isEmpty()) {
+                if(!listings.isEmpty()) {
                     data.put((String)property.get("id"), property);
                 }
             }
