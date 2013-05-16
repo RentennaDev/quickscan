@@ -60,14 +60,11 @@ public class Index {
             buckets[i] = new LinkedList<String>();
         }
 
-//        final long start = System.nanoTime();
         for(final IndexPage page : this.pages) {
             page.scan(normalizedQuery, buckets);
         }
-//        final long end = System.nanoTime();
-//        System.out.println(end-start);
 
-        final Set<String> response = new LinkedHashSet<String>(); //LinkedHash because we want the best for each id
+        final Set<String> response = new LinkedHashSet<String>(limit); //LinkedHash because we want the best for each id
         for(int i = Index.SCORE_BUCKETS - 1; i >= 0; i--) {
             for(final String matchId : buckets[i]) {
                 if(response.size() < limit) {
