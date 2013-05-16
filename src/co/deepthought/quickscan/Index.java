@@ -51,9 +51,9 @@ public class Index {
      * TODO: skipping?
      */
     public Collection<String> scan(final Query query, final int limit) {
-
         final NormalizedQuery normalizedQuery = new NormalizedQuery(this, query);
 
+        // that's right, bucket sort is back and it is beautiful!
         // this solution would not work if we wanted to parallellize the algo, we'd need to create a bucket for each
         final List<String>[] buckets = (List<String>[]) new List[Index.SCORE_BUCKETS]; // I don't miss shit like this either
         for(int i = 0; i < Index.SCORE_BUCKETS; i++) {
