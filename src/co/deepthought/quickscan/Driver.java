@@ -31,23 +31,31 @@ public class Driver {
         end = System.nanoTime();
         System.out.println("Indexed in: " + (end-start));
 
+        final Query query = new Query();
+        query.filterFieldRange("price", 1500, 2500);
+        query.filterFieldMin("bedCount", generator.nextInt(3));
+        query.filterTagsAll("amenity:doorman", "amenity:elevator");
+        query.filterTagsAny("area:flatiron", "area:harlem");
+        query.setPreference("age", 1);
+        query.setPreference("score:1", 0.2);
+        query.setPreference("score:2", 0.2);
+        query.setPreference("score:3", 0.2);
+        query.setPreference("score:4", 0.2);
+        query.setPreference("score:5", 0.2);
+
+        // Let's warm up hotspot
+        for(int trial = 0; trial < 100; trial++) {
+            index.scan(query, 100);
+        }
+
+        long sum = 0;
         for(int trial = 0; trial < 100; trial++) {
             start = System.nanoTime();
-            final Query query = new Query();
-            query.filterFieldRange("price", 1500 + generator.nextInt(1000), 2500 + generator.nextInt(1000));
-            query.filterFieldMin("bedCount", generator.nextInt(3));
-            query.filterTagsAll("amenity:doorman", "amenity:elevator");
-            query.filterTagsAny("area:flatiron", "area:harlem");
-            query.setPreference("age", 1);
-            query.setPreference("score:1", 0.2);
-            query.setPreference("score:2", 0.2);
-            query.setPreference("score:3", 0.2);
-            query.setPreference("score:4", 0.2);
-            query.setPreference("score:5", 0.2);
             Collection<String> result = index.scan(query, 100);
             end = System.nanoTime();
-            System.out.println("Full query:" + (end-start));
+            sum += (end-start);
         }
+        System.out.println("Full query:" + sum/100);
 
 //        Driver.printDocuments(data, result);
     }

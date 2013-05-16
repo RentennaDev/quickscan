@@ -54,6 +54,7 @@ public class Index {
 
         final NormalizedQuery normalizedQuery = new NormalizedQuery(this, query);
 
+        // this solution would not work if we wanted to parallellize the algo, we'd need to create a bucket for each
         final List<String>[] buckets = (List<String>[]) new List[Index.SCORE_BUCKETS]; // I don't miss shit like this either
         for(int i = 0; i < Index.SCORE_BUCKETS; i++) {
             buckets[i] = new LinkedList<String>();
@@ -63,7 +64,7 @@ public class Index {
             page.scan(normalizedQuery, buckets);
         }
 
-        final Set<String> response = new LinkedHashSet<String>();
+        final Set<String> response = new LinkedHashSet<String>(); //LinkedHash because we want the best for each id
         for(int i = Index.SCORE_BUCKETS - 1; i >= 0; i--) {
             for(final String matchId : buckets[i]) {
                 if(response.size() < limit) {
