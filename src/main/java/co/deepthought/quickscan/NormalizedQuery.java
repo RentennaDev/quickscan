@@ -49,13 +49,13 @@ public class NormalizedQuery {
         for(final String tag : tags) {
             if(index.tagIndexes.containsKey(tag)) {
                 final int tagIndex = index.tagIndexes.get(tag);
-                masks[tagIndex/Index.LONG_BITS] |= (1L << (tagIndex % Index.LONG_BITS));
+                masks[tagIndex / Index.LONG_BITS] |= (1L << (tagIndex % Index.LONG_BITS));
             }
             else {
                 // If the tag doesn't exist in the index, it'll never get matched.
                 // Really, we should short-circuit, but this is a quick and painless way to ensure it
                 // never gets satisfied by setting the highest bit (which is past Index.MAX_TAGS)
-                masks[masks.length-1] |= (1L << (Index.LONG_BITS-1));
+                masks[masks.length - 1] |= (1L << (Index.LONG_BITS-1));
             }
         }
         for(int i = 0; i < masks.length; i++) {

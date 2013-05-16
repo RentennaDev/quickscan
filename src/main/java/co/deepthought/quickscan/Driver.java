@@ -35,7 +35,7 @@ public class Driver {
 //        query.filterFieldRange("price", 1500, 2500);
 //        query.filterFieldMin("bedCount", 1);
 //        query.filterTagsAll("amenity:doorman", "amenity:elevator");
-        query.filterTagsAll("area:nyc");
+//        query.filterTagsAll("area:nyc");
         query.setPreference("age", 1);
         query.setPreference("score:1", 0.2);
         query.setPreference("score:2", 0.2);
