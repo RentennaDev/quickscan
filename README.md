@@ -1,4 +1,4 @@
 quickscan
 =========
 
-scan-based denormalized parallel search
+scan-based denormalized search
