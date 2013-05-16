@@ -48,7 +48,12 @@ public class IndexPage {
      * @return the set of matching identifiers
      */
     public Set<String> scan(final NormalizedQuery query) {
+        long start, end;
+
+        start = System.nanoTime();
         final boolean[] matches = this.filter(query);
+        end = System.nanoTime();
+        System.out.println("scantime: " + (end-start));
 
         final Set<String> matching = new HashSet<String>();
         for(int i = 0; i < Index.PAGE_SIZE; i++) {
