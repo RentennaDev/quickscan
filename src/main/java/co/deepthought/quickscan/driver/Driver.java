@@ -1,5 +1,8 @@
-package co.deepthought.quickscan;
+package co.deepthought.quickscan.driver;
 
+import co.deepthought.quickscan.Document;
+import co.deepthought.quickscan.Index;
+import co.deepthought.quickscan.Query;
 import org.json.simple.JSONValue;
 
 import java.io.*;
