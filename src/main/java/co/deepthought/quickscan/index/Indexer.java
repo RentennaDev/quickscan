@@ -5,8 +5,6 @@ import co.deepthought.quickscan.store.DocumentStore;
 import co.deepthought.quickscan.store.Score;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Indexer {
 
@@ -30,7 +28,7 @@ public class Indexer {
             normalizer.indexDocument(document);
         }
 
-        return null;
+        return normalizer.normalize();
     }
 
 }

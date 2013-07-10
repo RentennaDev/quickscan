@@ -55,9 +55,9 @@ public class IndexNormalizer {
                 this.normalizeResultIds(),
                 this.normalizeTags(),
                 this.normalizeFields(),
-                IndexNormalizer.transpose(scores[0]),
-                IndexNormalizer.transpose(scores[1]),
-                IndexNormalizer.transpose(scores[2])
+                scores[0],
+                scores[1],
+                scores[2]
             );
         }
         else {

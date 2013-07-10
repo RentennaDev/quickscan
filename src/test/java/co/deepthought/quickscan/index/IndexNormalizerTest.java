@@ -3,7 +3,6 @@ package co.deepthought.quickscan.index;
 import co.deepthought.quickscan.store.Document;
 import co.deepthought.quickscan.store.DocumentStore;
 import co.deepthought.quickscan.store.DocumentTest;
-import co.deepthought.quickscan.store.Score;
 import org.junit.Before;
 import org.junit.Test;
 

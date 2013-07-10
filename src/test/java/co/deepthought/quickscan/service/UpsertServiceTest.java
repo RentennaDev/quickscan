@@ -1,5 +1,7 @@
 package co.deepthought.quickscan.service;
 
+import co.deepthought.quickscan.service.ServiceFailure;
+import co.deepthought.quickscan.service.UpsertService;
 import co.deepthought.quickscan.store.Document;
 import co.deepthought.quickscan.store.DocumentStore;
 import co.deepthought.quickscan.store.Score;
