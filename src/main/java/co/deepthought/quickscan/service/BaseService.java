@@ -21,20 +21,19 @@ public abstract class BaseService<InputType extends Validated, OutputType> {
         final InputType inputObject;
         try {
             inputObject = this.validateInput(inputJson);
+            final OutputType outputObject = this.handle(inputObject);
+            return gson.toJson(outputObject);
         }
-        catch (final Validated.Failure failure) {
+        catch (final ServiceFailure failure) {
             final FailureOutput output = new FailureOutput(failure.getMessage());
             return gson.toJson(output);
         }
-
-        final OutputType outputObject = this.handle(inputObject);
-        return gson.toJson(outputObject);
     }
 
-    public InputType validateInput(final String inputJson) throws Validated.Failure {
+    public InputType validateInput(final String inputJson) throws ServiceFailure {
         // TODO: handle error conditions?
         // JsonSyntaxException
-        // Failure
+        // ServiceFailure
         final Gson gson = new Gson();
         try {
             final InputType inputObject = gson.fromJson(inputJson, this.getInputClass());
@@ -42,11 +41,11 @@ public abstract class BaseService<InputType extends Validated, OutputType> {
             return inputObject;
         }
         catch (final JsonSyntaxException failure) {
-            throw new Validated.Failure(failure.getMessage());
+            throw new ServiceFailure(failure.getMessage());
         }
     }
 
     public abstract Class<InputType> getInputClass();
-    public abstract OutputType handle(final InputType inputObject);
+    public abstract OutputType handle(final InputType inputObject) throws ServiceFailure;
 
 }

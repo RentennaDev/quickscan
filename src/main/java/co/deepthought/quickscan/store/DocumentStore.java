@@ -12,10 +12,7 @@ import com.j256.ormlite.table.TableUtils;
 import org.sqlite.JDBC;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  *  DocumentStore persists denormalized documents to disk, using SQLITE for portable storage.
@@ -49,6 +46,28 @@ public class DocumentStore {
         this.documentDao.assignEmptyForeignCollection(document, "scores");
         this.documentDao.assignEmptyForeignCollection(document, "tags");
         return document;
+    }
+
+    public void deleteById(final String documentId) throws SQLException {
+        final Document document = this.getDocumentById(documentId);
+        if(document != null) {
+            this.fieldDao.delete(document.getFields());
+            this.scoreDao.delete(document.getScores());
+            this.tagDao.delete(document.getTags());
+            this.documentDao.delete(document);
+        }
+    }
+
+    public Iterable<Document> getDocuments(final String shardId) throws SQLException {
+        final QueryBuilder<Document, Integer> documentQuery = this.documentDao.queryBuilder();
+        documentQuery.where().eq("shardId", shardId);
+        final Iterator<Document> iterator = this.documentDao.iterator(documentQuery.prepare());
+        return new Iterable<Document>() {
+            @Override
+            public Iterator<Document> iterator() {
+                return iterator;
+            }
+        };
     }
 
     public Set<String> getDistinctFields(final String shardId) throws SQLException {

@@ -27,7 +27,7 @@ public class BaseServiceTest {
             public Input() {}
 
             @Override
-            public void validate() throws Failure {
+            public void validate() throws ServiceFailure {
                 this.validateNonNull(this.name, "name");
             }
         }
@@ -61,7 +61,7 @@ public class BaseServiceTest {
     }
 
     @Test
-    public void testValidateInputValid() throws Validated.Failure {
+    public void testValidateInputValid() throws ServiceFailure {
         final String inputString = "{\"name\":\"randall\",\"value\":21}";
         final TestService service = new TestService();
         final TestService.Input input = service.validateInput(inputString);
@@ -69,22 +69,22 @@ public class BaseServiceTest {
         assertEquals(input.value, 21);
     }
 
-    @Test(expected = Validated.Failure.class)
-    public void testValidateInputInvalidBadType() throws Validated.Failure {
+    @Test(expected = ServiceFailure.class)
+    public void testValidateInputInvalidBadType() throws ServiceFailure {
         final String inputString = "{\"name\":\"randl\",\"value\":\"prabce\"}";
         final TestService service = new TestService();
         service.validateInput(inputString);
     }
 
-    @Test(expected = Validated.Failure.class)
-    public void testValidateInputInvalidMissing() throws Validated.Failure {
+    @Test(expected = ServiceFailure.class)
+    public void testValidateInputInvalidMissing() throws ServiceFailure {
         final String inputString = "{\"value\":21}";
         final TestService service = new TestService();
         service.validateInput(inputString);
     }
 
-    @Test(expected = Validated.Failure.class)
-    public void testValidateInputInvalidJson() throws Validated.Failure {
+    @Test(expected = ServiceFailure.class)
+    public void testValidateInputInvalidJson() throws ServiceFailure {
         final String inputString = "{\"name\":\"randall\",\"value\":";
         final TestService service = new TestService();
         service.validateInput(inputString);

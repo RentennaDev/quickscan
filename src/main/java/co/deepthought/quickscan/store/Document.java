@@ -1,12 +1,13 @@
 package co.deepthought.quickscan.store;
 
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.sql.SQLException;
-import java.util.Date;
+import java.util.*;
 
 @DatabaseTable()
 public class Document {
@@ -65,12 +66,8 @@ public class Document {
         return documentId;
     }
 
-    public String getResultId() {
-        return resultId;
-    }
-
-    public String getShardId() {
-        return shardId;
+    public Collection<Field> getFields() {
+        return this.fields;
     }
 
     public Double getFieldValue(final String fieldName) {
@@ -82,6 +79,26 @@ public class Document {
         return null;
     }
 
+    public Map<String, Double> getFieldValues() {
+        final Map<String, Double> fieldValues = new HashMap<String, Double>();
+        for(final Field field : this.fields) {
+            fieldValues.put(field.getName(), field.getValue());
+        }
+        return fieldValues;
+    }
+
+    public String getResultId() {
+        return resultId;
+    }
+
+    public String getShardId() {
+        return shardId;
+    }
+
+    public Collection<Score> getScores() {
+        return this.scores;
+    }
+
     public Double getScoreValue(final String scoreName, final Score.Valence valence) {
         for(final Score score : this.scores) {
             if(score.getName().equals(scoreName) && score.getValence() == valence) {
@@ -89,6 +106,28 @@ public class Document {
             }
         }
         return null;
+    }
+
+    public Map<String, Double> getScoreValues(final Score.Valence valence) {
+        final Map<String, Double> scoreValues = new HashMap<String, Double>();
+        for(final Score score : this.scores) {
+            if(score.getValence() == valence) {
+                scoreValues.put(score.getName(), score.getValue());
+            }
+        }
+        return scoreValues;
+    }
+
+    public Collection<Tag> getTags() {
+        return this.tags;
+    }
+
+    public List<String> getTagNames() {
+        final List<String> tagNames = new ArrayList<String>();
+        for(final Tag tag : this.tags) {
+            tagNames.add(tag.getName());
+        }
+        return tagNames;
     }
 
     public boolean isPersisted() {
