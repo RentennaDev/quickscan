@@ -1,9 +1,11 @@
 package co.deepthought.quickscan.store;
 
+import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
+import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.sql.SQLException;
@@ -11,6 +13,12 @@ import java.util.*;
 
 @DatabaseTable()
 public class Document {
+
+    public static class Dao extends BaseDaoImpl<Document, Integer> {
+        public Dao(ConnectionSource connectionSource) throws SQLException {
+            super(connectionSource, Document.class);
+        }
+    }
 
     @DatabaseField(generatedId = true)
     private int id;

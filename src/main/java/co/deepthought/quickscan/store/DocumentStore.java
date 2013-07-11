@@ -1,9 +1,6 @@
 package co.deepthought.quickscan.store;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -19,18 +16,18 @@ import java.util.*;
  */
 public class DocumentStore {
 
-    private final Dao<Document, Integer> documentDao;
-    private final Dao<Field, Integer> fieldDao;
-    private final Dao<Score, Integer> scoreDao;
-    private final Dao<Tag, Integer> tagDao;
+    private final Document.Dao documentDao;
+    private final Field.Dao fieldDao;
+    private final Score.Dao scoreDao;
+    private final Tag.Dao tagDao;
 
     public DocumentStore(final String sqliteFilePath) throws SQLException {
         ConnectionSource connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + sqliteFilePath);
 
-        this.documentDao = DaoManager.createDao(connectionSource, Document.class);
-        this.fieldDao = DaoManager.createDao(connectionSource, Field.class);
-        this.scoreDao = DaoManager.createDao(connectionSource, Score.class);
-        this.tagDao = DaoManager.createDao(connectionSource, Tag.class);
+        this.documentDao = new Document.Dao(connectionSource);
+        this.fieldDao = new Field.Dao(connectionSource);
+        this.scoreDao = new Score.Dao(connectionSource);
+        this.tagDao = new Tag.Dao(connectionSource);
 
         TableUtils.createTableIfNotExists(connectionSource, Document.class);
         TableUtils.createTableIfNotExists(connectionSource, Field.class);

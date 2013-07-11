@@ -1,61 +1,69 @@
 package co.deepthought.quickscan.driver;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import co.deepthought.quickscan.index.IndexShard;
 
 public class SpeedTest {
 
     public static void main(String[] args) {
-        int numPages = 1280;
+        final int top = 16384;
 
-        final Random generator = new Random();
+        final String[] resultIds = new String[top];
+        final long[][] tags = new long[2][top];
+        final double[][] fields = new double[3][top];
+        final double[][] neutralScores = new double[2][top];
+        final double[][] negativeScores = new double[2][top];
+        final double[][] positiveScores = new double[2][top];
+        for(int i = 0; i < top; i++) {
+            resultIds[i] = "id-" + i;
 
-        final List<int[]> numberss = new ArrayList<int[]>();
-        for(int i = 0; i < numPages; i ++) {
-            int COUNT = generator.nextInt(65536);
-            final int[] numbers = new int[COUNT];
-            SpeedTest.fill(numbers);
-            numberss.add(numbers);
-        }
+            fields[0][i] = i; // [0-1023]
+            fields[1][i] = top - i; // [1024 - 1]
+            fields[2][i] = i % 16; // [0,1,2,...15,16,0,1,2,...]
 
-        int sum;
+            tags[0][i] |= (1L << (i % 16)); // [first word, one-hot, sliding rotation to 16]
 
-        //Do 1000 trials to heat up the cache
-        for(int i = 0; i < 1000; i++) {
-            final int[] numbers = numberss.get(generator.nextInt(numPages));
-            sum = 0;
-            for(int j = 0; j < numbers.length; j++) {
-                sum += numbers[j];
+            tags[1][i] |= (1L); // [second word, first bit always set]
+            if(i % 2 == 0) {
+                tags[1][i] |= (1L << 1); // [second word, first bit set for evens]
             }
         }
 
-        //Now the real test
-        long start, end;
-        long timesum = 0;
-        int countsum = 0;
+        final IndexShard shard = new IndexShard(
+            resultIds,
+            tags,
+            fields,
+            neutralScores,
+            negativeScores,
+            positiveScores
+        );
+
         for(int i = 0; i < 1000; i++) {
-            final int[] numbers = numberss.get(generator.nextInt(numPages));
+            shard.filter(
+                new long[] {0L, (1L | (1L << 1))}, // evens only... 512
+                new long[][] {{0xFFL, 0L}}, // [0-7]/16 + [4-11]/16 = [4-7]... 128
+                new double[] {256, 256, 3}, // drop bottom 1/4, 96 remain
+                new double[] {786, 786, 5} // all 4,6 at this point, drop bottoms
+            );
+        }
+
+        long start, end, total;
+        total = 0;
+
+        for(int i = 0; i < 1000; i++) {
             start = System.nanoTime();
-            sum = 0;
-            for(int j = 0; j < numbers.length; j++) {
-                sum += numbers[j];
-            }
+            shard.filter(
+                new long[] {0L, (1L | (1L << 1))}, // evens only... 512
+                new long[][] {{0xFFL, 0L}}, // [0-7]/16 + [4-11]/16 = [4-7]... 128
+                new double[] {256, 256, 3}, // drop bottom 1/4, 96 remain
+                new double[] {786, 786, 5} // all 4,6 at this point, drop bottoms
+            );
             end = System.nanoTime();
-            timesum += (end-start);
-            countsum += numbers.length;
+            total += (end - start);
         }
 
-        System.out.println(timesum);
-        System.out.println(countsum/1000);
-        System.out.print(timesum/(countsum/1000));
+        System.out.println(total/1000);
+
     }
 
-    public static void fill(final int[] numbers) {
-        final Random generator = new Random();
-        for(int i = 0; i < numbers.length; i++) {
-            numbers[i] = generator.nextInt();
-        }
-    }
 
 }

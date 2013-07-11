@@ -1,10 +1,20 @@
 package co.deepthought.quickscan.store;
 
+import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTable;
+
+import java.sql.SQLException;
 
 @DatabaseTable()
 public class Score {
+
+    public static class Dao extends BaseDaoImpl<Score, Integer> {
+        public Dao(ConnectionSource connectionSource) throws SQLException {
+            super(connectionSource, Score.class);
+        }
+    }
 
     public static enum Valence {
         NEUTRAL, POSITIVE, NEGATIVE
