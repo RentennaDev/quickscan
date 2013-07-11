@@ -32,8 +32,8 @@ public class IndexShard {
     }
 
     public String[] scan(
-            final long[] disjunctiveTags,
-            final long[][] conjunctiveTags,
+            final long[] conjunctiveTags,
+            final long[][] disjunctiveTags,
             final double[] minFilters,
             final double[] maxFilters,
             final double[] neutralPreferences,
@@ -41,18 +41,34 @@ public class IndexShard {
             final double[] postivePreferences,
             final int number
         ) {
-        final boolean[] nonmatches = this.filter(disjunctiveTags, conjunctiveTags, minFilters, maxFilters);
+        final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
 
         return null;
     }
 
     final boolean[] filter(
-            final long[] disjunctiveTags,
-            final long[][] conjunctiveTags,
+            final long[] conjunctiveTags,
+            final long[][] disjunctiveTags,
             final double[] minFilters,
             final double[] maxFilters
         ) {
         final boolean[] nonmatches = new boolean[this.size];
+
+        for(int i = 0; i < disjunctiveTags.length; i++) {
+            this.filterDisjunctive(nonmatches, disjunctiveTags[i]);
+        }
+
+        for(int i = 0; i < this.tags.length; i++) {
+            this.filterConjunctive(nonmatches, i, conjunctiveTags[i]);
+        }
+
+        for(int i = 0; i < this.fields.length; i++) {
+            this.filterMin(nonmatches, i, minFilters[i]);
+        }
+
+        for(int i = 0; i < this.fields.length; i++) {
+            this.filterMax(nonmatches, i, maxFilters[i]);
+        }
 
         return nonmatches;
     }

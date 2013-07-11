@@ -44,6 +44,23 @@ public class IndexShardTest {
     }
 
     @Test
+    public void testFilter() {
+        this.nonmatches = this.shard.filter(
+            new long[] {0L, (1L | (1L << 1))}, // evens only... 512
+            new long[][] {{0xFFL, 0L}, {0xFF0L, 0L}}, // [0-7]/16 + [4-11]/16 = [4-7]... 128
+            new double[] {256, Double.NaN, Double.NaN}, // drop bottom 1/4, 96 remain
+            new double[] {Double.NaN, Double.NaN, 5} // all 4,6 at this point, drop bottoms
+        );
+        for(int i = 0; i < this.nonmatches.length; i++) {
+            if(!this.nonmatches[i]) {
+                assertTrue(i >= 256);
+                assertTrue(i % 16 == 4);
+            }
+        }
+        assertEquals(48, this.countMatches());
+    }
+
+    @Test
     public void testFilterConjunctive() {
         this.shard.filterConjunctive(this.nonmatches, 1, 0);
         assertEquals(1024, this.countMatches());
