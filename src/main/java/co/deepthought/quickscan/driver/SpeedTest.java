@@ -10,9 +10,7 @@ public class SpeedTest {
         final String[] resultIds = new String[top];
         final long[][] tags = new long[2][top];
         final double[][] fields = new double[3][top];
-        final double[][] neutralScores = new double[2][top];
-        final double[][] negativeScores = new double[2][top];
-        final double[][] positiveScores = new double[2][top];
+        final double[][] scores = new double[2][top];
         for(int i = 0; i < top; i++) {
             resultIds[i] = "id-" + i;
 
@@ -32,9 +30,7 @@ public class SpeedTest {
             resultIds,
             tags,
             fields,
-            neutralScores,
-            negativeScores,
-            positiveScores
+            scores
         );
 
         for(int i = 0; i < 1000; i++) {

@@ -18,9 +18,7 @@ public class Indexer {
         final IndexMapper indexMapper = new IndexMapper(
             this.store.getDistinctTags(shardId),
             this.store.getDistinctFields(shardId),
-            this.store.getDistinctScores(shardId, Score.Valence.NEUTRAL),
-            this.store.getDistinctScores(shardId, Score.Valence.NEGATIVE),
-            this.store.getDistinctScores(shardId, Score.Valence.POSITIVE)
+            this.store.getDistinctScores(shardId)
         );
 
         final IndexNormalizer normalizer = new IndexNormalizer(indexMapper);

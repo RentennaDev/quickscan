@@ -65,8 +65,8 @@ public class Document {
         this.tags.add(tag);
     }
 
-    public void addScore(final String scoreName, final Score.Valence valence, final double value) throws SQLException {
-        final Score score = new Score(scoreName, valence, value);
+    public void addScore(final String scoreName, final double value) throws SQLException {
+        final Score score = new Score(scoreName, value);
         this.scores.add(score);
     }
 
@@ -107,21 +107,19 @@ public class Document {
         return this.scores;
     }
 
-    public Double getScoreValue(final String scoreName, final Score.Valence valence) {
+    public Double getScoreValue(final String scoreName) {
         for(final Score score : this.scores) {
-            if(score.getName().equals(scoreName) && score.getValence() == valence) {
+            if(score.getName().equals(scoreName)) {
                 return score.getValue();
             }
         }
         return null;
     }
 
-    public Map<String, Double> getScoreValues(final Score.Valence valence) {
+    public Map<String, Double> getScoreValues() {
         final Map<String, Double> scoreValues = new HashMap<String, Double>();
         for(final Score score : this.scores) {
-            if(score.getValence() == valence) {
-                scoreValues.put(score.getName(), score.getValue());
-            }
+            scoreValues.put(score.getName(), score.getValue());
         }
         return scoreValues;
     }

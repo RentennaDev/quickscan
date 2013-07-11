@@ -35,8 +35,8 @@ public class UpsertServiceTest {
         input.tags = new String[] {"a", "b", "c"};
         input.fields = new HashMap<String, Double>();
         input.fields.put("A", 1.1);
-        input.scores = new HashMap<String, UpsertService.Input.Score>();
-        input.scores.put("B", new UpsertService.Input.Score(-1, 0.5));
+        input.scores = new HashMap<String, Double>();
+        input.scores.put("B", 0.5);
         this.service.handle(input);
 
         final Document document = this.store.getDocumentById("AAA");
@@ -48,7 +48,7 @@ public class UpsertServiceTest {
         assertTrue(document.hasTag("c"));
         assertFalse(document.hasTag("d"));
         assertEquals(1.1, document.getFieldValue("A"));
-        assertEquals(0.5, document.getScoreValue("B", Score.Valence.NEGATIVE));
+        assertEquals(0.5, document.getScoreValue("B"));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class UpsertServiceTest {
         input.resultId = "CCC";
         input.tags = new String[] {"a", "b", "c"};
         input.fields = new HashMap<String, Double>();
-        input.scores = new HashMap<String, UpsertService.Input.Score>();
+        input.scores = new HashMap<String, Double>();
         this.service.handle(input);
 
         final UpsertService.Input input2 = new UpsertService.Input();
@@ -68,7 +68,7 @@ public class UpsertServiceTest {
         input2.resultId = "CCC";
         input2.tags = new String[] {"a"};
         input2.fields = new HashMap<String, Double>();
-        input2.scores = new HashMap<String, UpsertService.Input.Score>();
+        input2.scores = new HashMap<String, Double>();
         this.service.handle(input2);
 
         final Document document = this.store.getDocumentById("AAA");

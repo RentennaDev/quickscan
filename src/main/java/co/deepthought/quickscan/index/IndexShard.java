@@ -1,7 +1,5 @@
 package co.deepthought.quickscan.index;
 
-import java.util.Arrays;
-
 public class IndexShard {
 
     public static final long ALL_HOT = ~0L;
@@ -10,24 +8,18 @@ public class IndexShard {
     private final String[] resultIds;
     private final long[][] tags;
     private final double[][] fields;
-    private final double[][] neutralScores;
-    private final double[][] negativeScores;
-    private final double[][] positiveScores;
+    private final double[][] scores;
 
     public IndexShard(
             final String[] resultIds,
             final long[][] tags,
             final double[][] fields,
-            final double[][] neutralScores,
-            final double[][] negativeScores,
-            final double[][] positiveScores
+            final double[][] scores
         ) {
         this.resultIds = resultIds;
         this.tags = tags;
         this.fields = fields;
-        this.neutralScores = neutralScores;
-        this.negativeScores = negativeScores;
-        this.positiveScores = positiveScores;
+        this.scores = scores;
         this.size = this.resultIds.length;
     }
 
@@ -36,13 +28,11 @@ public class IndexShard {
             final long[][] disjunctiveTags,
             final double[] minFilters,
             final double[] maxFilters,
-            final double[] neutralPreferences,
-            final double[] negativePreferences,
-            final double[] postivePreferences,
+            final double[] preferences,
             final int number
         ) {
         final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
-        final double[] score = this.score(nonmatches, neutralPreferences, negativePreferences, postivePreferences);
+        final double[] score = this.score(nonmatches, preferences);
         return null;
     }
 
@@ -120,9 +110,7 @@ public class IndexShard {
 
     public double[] score(
             final boolean[] nonmatches,
-            final double[] neutralPreferences,
-            final double[] negativePreferences,
-            final double[] postivePreferences
+            final double[] preferences
         ) {
         final double[] scoreSums = new double[this.size];
         return null;

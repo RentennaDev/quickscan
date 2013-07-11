@@ -65,28 +65,29 @@ public class DocumentStoreTest {
     @Test
     public void testGetDistinctScores() throws SQLException {
         final Document document1 = this.store.createDocument("A", "B", "C");
-        document1.addScore("baby", Score.Valence.NEUTRAL, 0.2);
-        document1.addScore("cats", Score.Valence.NEUTRAL, 0.2);
+        document1.addScore("baby", 0.2);
+        document1.addScore("cats", 0.2);
         this.store.persistDocument(document1);
 
         final Document document2 = this.store.createDocument("C", "OP", "C");
-        document2.addScore("baby", Score.Valence.NEUTRAL, 0.2);
-        document2.addScore("fats", Score.Valence.NEUTRAL, 0.2);
-        document2.addScore("rats", Score.Valence.POSITIVE, 0.2);
-        document2.addScore("cats", Score.Valence.POSITIVE, 0.2);
+        document2.addScore("baby", 0.2);
+        document2.addScore("fats", 0.2);
+        document2.addScore("rats", 0.2);
+        document2.addScore("cats", 0.2);
         this.store.persistDocument(document2);
 
         final Document document3 = this.store.createDocument("EE", "LMN", "D");
-        document3.addScore("baby", Score.Valence.NEUTRAL, 0.2);
-        document3.addScore("mats", Score.Valence.NEUTRAL, 0.2);
+        document3.addScore("baby", 0.2);
+        document3.addScore("mats", 0.2);
         this.store.persistDocument(document3);
 
         final Set<String> expected = new HashSet<String>();
         expected.add("baby");
         expected.add("cats");
         expected.add("fats");
+        expected.add("rats");
 
-        assertEquals(expected, this.store.getDistinctScores("C", Score.Valence.NEUTRAL));
+        assertEquals(expected, this.store.getDistinctScores("C"));
     }
 
     @Test

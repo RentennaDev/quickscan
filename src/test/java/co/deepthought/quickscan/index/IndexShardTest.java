@@ -15,9 +15,7 @@ public class IndexShardTest {
         final String[] resultIds = new String[1024];
         final long[][] tags = new long[2][1024];
         final double[][] fields = new double[3][1024];
-        final double[][] neutralScores = new double[2][1024];
-        final double[][] negativeScores = new double[2][1024];
-        final double[][] positiveScores = new double[2][1024];
+        final double[][] scores = new double[2][1024];
         for(int i = 0; i < 1024; i++) {
             resultIds[i] = "id-" + i;
 
@@ -36,9 +34,7 @@ public class IndexShardTest {
             resultIds,
             tags,
             fields,
-            neutralScores,
-            negativeScores,
-            positiveScores
+            scores
         );
         this.nonmatches = new boolean[1024];
     }

@@ -1,9 +1,5 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.index.IndexMapper;
-import co.deepthought.quickscan.index.IndexShard;
-import co.deepthought.quickscan.store.Score;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +27,7 @@ public class Searcher {
             this.normalizeDisjunctiveTags(disjunctiveTags),
             this.indexMapper.normalizeFields(minFilters, Double.NaN),
             this.indexMapper.normalizeFields(maxFilters, Double.NaN),
-            this.indexMapper.normalizeScores(preferences, Score.Valence.NEUTRAL, 0.),
-            this.indexMapper.normalizeScores(preferences, Score.Valence.NEGATIVE, 0.),
-            this.indexMapper.normalizeScores(preferences, Score.Valence.POSITIVE, 0.),
+            this.indexMapper.normalizeScores(preferences, 0.),
             limit
         );
     }

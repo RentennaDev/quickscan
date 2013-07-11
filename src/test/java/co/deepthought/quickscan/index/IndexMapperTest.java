@@ -23,19 +23,11 @@ public class IndexMapperTest {
         for(int i = 0 ;i < 5; i++) {
             fields.add("field-" + Integer.toString(i));
         }
-        final List<String> scoresNeu = new ArrayList<String>();
+        final List<String> scores = new ArrayList<String>();
         for(int i = 0 ;i < 5; i++) {
-            scoresNeu.add("neutral-" + Integer.toString(i));
+            scores.add("score-" + Integer.toString(i));
         }
-        final List<String> scoresNeg = new ArrayList<String>();
-        for(int i = 0 ;i < 5; i++) {
-            scoresNeg.add("negative-" + Integer.toString(i));
-        }
-        final List<String> scoresPos = new ArrayList<String>();
-        for(int i = 0 ;i < 5; i++) {
-            scoresPos.add("positive-" + Integer.toString(i));
-        }
-        return new IndexMapper(tags, fields, scoresNeu, scoresNeg, scoresPos);
+        return new IndexMapper(tags, fields, scores);
     }
 
     @Before
@@ -86,32 +78,12 @@ public class IndexMapperTest {
     }
 
     @Test
-    public void testNormalizeScoresNegative() {
+    public void testNormalizeScores() {
         final Map<String, Double> fields = new HashMap<String, Double>();
-        fields.put("negative-0", 0.7);
-        fields.put("negative-3", 0.5);
-        fields.put("neutral-1", 0.2);
-        final double[] normalized = this.mapper.normalizeScores(fields, Score.Valence.NEGATIVE, 0);
-        assertArrayEquals(new double[] {0.7, 0, 0, 0.5, 0}, normalized, 0);
-    }
-
-    @Test
-    public void testNormalizeScoresNeutral() {
-        final Map<String, Double> fields = new HashMap<String, Double>();
-        fields.put("neutral-0", 0.7);
-        fields.put("neutral-3", 0.5);
-        fields.put("neutral-FAKE", 0.2);
-        final double[] normalized = this.mapper.normalizeScores(fields, Score.Valence.NEUTRAL, 0);
-        assertArrayEquals(new double[] {0.7, 0, 0, 0.5, 0}, normalized, 0);
-    }
-
-    @Test
-    public void testNormalizeScoresPositive() {
-        final Map<String, Double> fields = new HashMap<String, Double>();
-        fields.put("positive-0", 0.7);
-        fields.put("positive-3", 0.5);
-        fields.put("neutral-1", 0.2);
-        final double[] normalized = this.mapper.normalizeScores(fields, Score.Valence.POSITIVE, 0);
+        fields.put("score-0", 0.7);
+        fields.put("score-3", 0.5);
+        fields.put("score-100", 0.2);
+        final double[] normalized = this.mapper.normalizeScores(fields, 0);
         assertArrayEquals(new double[] {0.7, 0, 0, 0.5, 0}, normalized, 0);
     }
 

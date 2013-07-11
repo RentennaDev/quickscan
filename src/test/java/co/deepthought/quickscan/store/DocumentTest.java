@@ -20,23 +20,23 @@ public class DocumentTest {
         document2.addTag("0");
         document2.addField("field-1", 10);
         document2.addField("field-2", 11);
-        document2.addScore("neutral-3", Score.Valence.NEUTRAL, 0.5);
-        document2.addScore("negative-1", Score.Valence.NEGATIVE, 0.6);
+        document2.addScore("score-3", 0.5);
+        document2.addScore("score-1", 0.6);
 
         final Document document3 = store.createDocument("c", "c", "a");
         document3.addTag("1");
         document3.addTag("128");
         document3.addField("field-0", 100);
-        document3.addScore("positive-0", Score.Valence.POSITIVE, 0.4);
-        document3.addScore("negative-1", Score.Valence.NEGATIVE, 0.8);
+        document3.addScore("score-0", 0.4);
+        document3.addScore("score-1", 0.8);
 
         final Document document4 = store.createDocument("d", "c", "a");
         document4.addTag("2");
         document4.addTag("100");
         document4.addTag("baby");
         document4.addField("field-FAKE", 100);
-        document4.addScore("FAKE", Score.Valence.NEUTRAL, 0.4);
-        document4.addScore("negative-1", Score.Valence.NEGATIVE, 0.8);
+        document4.addScore("FAKE", 0.4);
+        document4.addScore("score-1", 0.8);
 
         return new Document[] {document1, document2, document3, document4};
     }
@@ -65,19 +65,17 @@ public class DocumentTest {
     @Test
     public void testAddScore() throws SQLException {
         final Document document = this.store.createDocument("A", "B", "C");
-        document.addScore("baby", Score.Valence.NEUTRAL, 0.2);
-        document.addScore("cats", Score.Valence.NEUTRAL, 0.4);
-        assertEquals(0.2, document.getScoreValue("baby", Score.Valence.NEUTRAL), 0);
-        assertEquals(0.4, document.getScoreValue("cats", Score.Valence.NEUTRAL), 0);
-        assertNull(document.getScoreValue("fragrance", Score.Valence.NEUTRAL));
-        assertNull(document.getScoreValue("baby", Score.Valence.POSITIVE));
+        document.addScore("baby", 0.2);
+        document.addScore("cats", 0.4);
+        assertEquals(0.2, document.getScoreValue("baby"), 0);
+        assertEquals(0.4, document.getScoreValue("cats"), 0);
+        assertNull(document.getScoreValue("fragrance"));
         this.store.persistDocument(document);
 
         final Document queriedDocument = this.store.getDocumentById("A");
-        assertEquals(0.2, queriedDocument.getScoreValue("baby", Score.Valence.NEUTRAL), 0);
-        assertEquals(0.4, queriedDocument.getScoreValue("cats", Score.Valence.NEUTRAL), 0);
-        assertNull(queriedDocument.getScoreValue("fragrance", Score.Valence.NEUTRAL));
-        assertNull(queriedDocument.getScoreValue("baby", Score.Valence.POSITIVE));
+        assertEquals(0.2, queriedDocument.getScoreValue("baby"), 0);
+        assertEquals(0.4, queriedDocument.getScoreValue("cats"), 0);
+        assertNull(queriedDocument.getScoreValue("fragrance"));
     }
 
     @Test
@@ -110,20 +108,14 @@ public class DocumentTest {
     @Test
     public void testGetScoreValues() throws SQLException {
         final Document document = this.store.createDocument("A", "B", "C");
-        document.addScore("brat", Score.Valence.NEGATIVE, 0.1);
-        document.addScore("met", Score.Valence.NEGATIVE, 0.2);
-        document.addScore("broof", Score.Valence.POSITIVE, 0.8);
-        document.addScore("met", Score.Valence.NEUTRAL, 0.8);
-        final Map<String, Double> negativeValues = document.getScoreValues(Score.Valence.NEGATIVE);
-        assertEquals(2, negativeValues.size());
-        assertEquals(0.1, negativeValues.get("brat"), 0);
-        assertEquals(0.2, negativeValues.get("met"), 0);
-        final Map<String, Double> positiveValues = document.getScoreValues(Score.Valence.POSITIVE);
-        assertEquals(1, positiveValues.size());
-        assertEquals(0.8, positiveValues.get("broof"), 0);
-        final Map<String, Double> neutralValues = document.getScoreValues(Score.Valence.NEUTRAL);
-        assertEquals(1, neutralValues.size());
-        assertEquals(0.8, neutralValues.get("met"), 0);
+        document.addScore("brat", 0.1);
+        document.addScore("met", 0.2);
+        document.addScore("broof", 0.8);
+        final Map<String, Double> values = document.getScoreValues();
+        assertEquals(3, values.size());
+        assertEquals(0.1, values.get("brat"), 0);
+        assertEquals(0.2, values.get("met"), 0);
+        assertEquals(0.8, values.get("broof"), 0);
     }
 
     @Test

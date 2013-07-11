@@ -1,16 +1,12 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.Score;
-
 import java.util.*;
 
 public class IndexMapper {
 
     final private Map<String, Integer> tags;
     final private Map<String, Integer> fields;
-    final private Map<String, Integer> neutralScores;
-    final private Map<String, Integer> negativeScores;
-    final private Map<String, Integer> positiveScores;
+    final private Map<String, Integer> scores;
 
     public static long getTagMask(final int tagIndex) {
         return 1L << (tagIndex % Long.SIZE);
@@ -33,15 +29,11 @@ public class IndexMapper {
     public IndexMapper(
             final Iterable<String> tagNames,
             final Iterable<String> fieldNames,
-            final Iterable<String> neutralScoreNames,
-            final Iterable<String> negativeScoreNames,
-            final Iterable<String> positiveScoreNames
+            final Iterable<String> neutralScoreNames
         ) {
         this.tags = IndexMapper.mapNames(tagNames);
         this.fields = IndexMapper.mapNames(fieldNames);
-        this.neutralScores = IndexMapper.mapNames(neutralScoreNames);
-        this.negativeScores = IndexMapper.mapNames(negativeScoreNames);
-        this.positiveScores = IndexMapper.mapNames(positiveScoreNames);
+        this.scores = IndexMapper.mapNames(neutralScoreNames);
     }
 
     public int getTagPageCount() {
@@ -52,16 +44,8 @@ public class IndexMapper {
         return this.normalizeNumbers(values, this.fields, defaultValue);
     }
 
-    public double[] normalizeScores(final Map<String, Double> values, final Score.Valence valence, double defaultValue) {
-        if(valence == Score.Valence.NEGATIVE) {
-            return this.normalizeNumbers(values, this.negativeScores, defaultValue);
-        }
-        else if(valence == Score.Valence.POSITIVE) {
-            return this.normalizeNumbers(values, this.positiveScores, defaultValue);
-        }
-        else {
-            return this.normalizeNumbers(values, this.neutralScores, defaultValue);
-        }
+    public double[] normalizeScores(final Map<String, Double> values, double defaultValue) {
+        return this.normalizeNumbers(values, this.scores, defaultValue);
     }
 
     public double[] normalizeNumbers(

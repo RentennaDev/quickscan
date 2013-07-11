@@ -84,7 +84,7 @@ public class DocumentStore {
         return result;
     }
 
-    public Set<String> getDistinctScores(final String shardId, final Score.Valence valence) throws SQLException {
+    public Set<String> getDistinctScores(final String shardId) throws SQLException {
         final Set<String> result = new HashSet<String>();
 
         final QueryBuilder<Document, Integer> documentQuery = this.documentDao.queryBuilder();
@@ -92,7 +92,6 @@ public class DocumentStore {
 
         final QueryBuilder<Score, Integer> scoreQuery = this.scoreDao.queryBuilder();
         scoreQuery.join(documentQuery);
-        scoreQuery.where().eq("valence", valence);
         scoreQuery.distinct().selectColumns("name");
         scoreQuery.prepare();
 
