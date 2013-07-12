@@ -44,18 +44,11 @@ public class IndexNormalizerTest {
     @Test
     public void testNormalizeScores() {
         final double[][] normalized = this.normalizer.normalizeScores();
-        assertEquals(5, normalized.length);
-        for(int i = 0; i < normalized.length; i++) {
-            for(int j = 0; j < normalized[i].length; j++) {
-                System.out.print(normalized[i][j] + " ");
-            }
-            System.out.println();
-        }
-        assertArrayEquals(new double[] {Double.NaN, Double.NaN, 0.4, Double.NaN}, normalized[0], 0);
-        assertArrayEquals(new double[] {Double.NaN, 0.6, 0.8, 0.8}, normalized[1], 0);
-        assertArrayEquals(new double[] {Double.NaN, Double.NaN, Double.NaN, Double.NaN}, normalized[2], 0);
-        assertArrayEquals(new double[] {Double.NaN, 0.5, Double.NaN, Double.NaN}, normalized[3], 0);
-        assertArrayEquals(new double[] {Double.NaN, Double.NaN, Double.NaN, Double.NaN}, normalized[4], 0);
+        assertEquals(4, normalized.length);
+        assertArrayEquals(new double[] {-1, -1, -1, -1, -1}, normalized[0], 0);
+        assertArrayEquals(new double[] {-1, 0.6, -1, 0.5, -1}, normalized[1], 0);
+        assertArrayEquals(new double[] {0.4, 0.8, -1, -1, -1}, normalized[2], 0);
+        assertArrayEquals(new double[] {-1, 0.8, -1, -1, -1}, normalized[3], 0);
     }
 
     @Test

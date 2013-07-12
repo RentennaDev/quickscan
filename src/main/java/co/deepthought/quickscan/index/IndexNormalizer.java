@@ -30,7 +30,7 @@ public class IndexNormalizer {
         this.resultIds.add(document.getResultId());
         this.tags.add(this.indexMapper.normalizeTags(document.getTagNames()));
         this.fields.add(this.indexMapper.normalizeFields(document.getFieldValues(), Double.NaN));
-        this.scores.add(this.indexMapper.normalizeScores(document.getScoreValues(), Double.NaN));
+        this.scores.add(this.indexMapper.normalizeScores(document.getScoreValues(), -1));
     }
 
     public IndexShard normalize() {
@@ -57,7 +57,7 @@ public class IndexNormalizer {
     }
 
     public double[][] normalizeScores() {
-        return IndexNormalizer.transpose(this.scores.toArray(new double[this.getSize()][]));
+        return this.scores.toArray(new double[this.getSize()][]);
     }
 
     public long[][] normalizeTags() {

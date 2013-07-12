@@ -7,6 +7,9 @@ import co.deepthought.quickscan.store.Score;
 import java.sql.SQLException;
 import java.util.Map;
 
+/**
+ * A service inserting or updating documents to the store.
+ */
 public class UpsertService
         extends BaseService<UpsertService.Input, ServiceSuccess> {
 

@@ -3,6 +3,11 @@ package co.deepthought.quickscan.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+/**
+ * The base class for any service, utilized by the server.
+ * @param <InputType>
+ * @param <OutputType>
+ */
 public abstract class BaseService<InputType extends Validated, OutputType> {
 
     public BaseService() {}

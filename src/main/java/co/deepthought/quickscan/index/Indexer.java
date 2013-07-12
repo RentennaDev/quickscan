@@ -2,10 +2,12 @@ package co.deepthought.quickscan.index;
 
 import co.deepthought.quickscan.store.Document;
 import co.deepthought.quickscan.store.DocumentStore;
-import co.deepthought.quickscan.store.Score;
 
 import java.sql.SQLException;
 
+/**
+ * Can produce Searchers for various shards.
+ */
 public class Indexer {
 
     final private DocumentStore store;
@@ -14,7 +16,7 @@ public class Indexer {
         this.store = store;
     }
 
-    public IndexShard index(final String shardId) throws SQLException {
+    public Searcher index(final String shardId) throws SQLException {
         final IndexMapper indexMapper = new IndexMapper(
             this.store.getDistinctTags(shardId),
             this.store.getDistinctFields(shardId),
@@ -26,7 +28,8 @@ public class Indexer {
             normalizer.indexDocument(document);
         }
 
-        return normalizer.normalize();
+        final IndexShard shard = normalizer.normalize();
+        return new Searcher(indexMapper, shard);
     }
 
 }

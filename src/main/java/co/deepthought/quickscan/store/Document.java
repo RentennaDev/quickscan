@@ -11,6 +11,9 @@ import com.j256.ormlite.table.DatabaseTable;
 import java.sql.SQLException;
 import java.util.*;
 
+/**
+ * The ORM class for documents being stored in the sqlite store.
+ */
 @DatabaseTable()
 public class Document {
 

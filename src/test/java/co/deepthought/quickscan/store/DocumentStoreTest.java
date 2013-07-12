@@ -63,6 +63,17 @@ public class DocumentStoreTest {
     }
 
     @Test
+    public void testGetDistinctShards() throws SQLException {
+        DocumentTest.mockDocuments(this.store);
+        final Set<String> expected = new HashSet<String>();
+        expected.add("a");
+        assertEquals(expected, this.store.getDistinctShards());
+        this.store.createDocument("e", "e", "c");
+        expected.add("c");
+        assertEquals(expected, this.store.getDistinctShards());
+    }
+
+    @Test
     public void testGetDistinctScores() throws SQLException {
         final Document document1 = this.store.createDocument("A", "B", "C");
         document1.addScore("baby", 0.2);

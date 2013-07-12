@@ -2,6 +2,9 @@ package co.deepthought.quickscan.index;
 
 import java.util.*;
 
+/**
+ * Stores mappings from denormalized fields to the normalized field indexes for a particular dataset.
+ */
 public class IndexMapper {
 
     final private Map<String, Integer> tags;

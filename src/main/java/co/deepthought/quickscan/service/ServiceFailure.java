@@ -1,5 +1,8 @@
 package co.deepthought.quickscan.service;
 
+/**
+ * JSON-serializable class to indicate a failure.
+ */
 public class ServiceFailure extends Exception {
 
     private final String message;

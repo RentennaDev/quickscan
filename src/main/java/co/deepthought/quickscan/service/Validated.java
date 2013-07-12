@@ -1,5 +1,8 @@
 package co.deepthought.quickscan.service;
 
+/**
+ * An abstract class providing the ability to validate input.
+ */
 public abstract class Validated {
 
     public abstract void validate() throws ServiceFailure;

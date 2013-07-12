@@ -7,6 +7,9 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.sql.SQLException;
 
+/**
+ * The ORM class for fields being stored in the sqlite store.
+ */
 @DatabaseTable()
 public class Field {
 

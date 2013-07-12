@@ -1,9 +1,13 @@
 package co.deepthought.quickscan.index;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Maintains both an IndexMapper and an IndexShard and can perform searches on the dataset, yielding result ids.
+ */
 public class Searcher {
 
     private final IndexMapper indexMapper;
@@ -14,7 +18,7 @@ public class Searcher {
         this.indexShard = indexShard;
     }
 
-    public String[] search(
+    public Collection<String> search(
             final List<String> conjunctiveTags,
             final List<List<String>> disjunctiveTags,
             final Map<String, Double> minFilters,
@@ -27,7 +31,7 @@ public class Searcher {
             this.normalizeDisjunctiveTags(disjunctiveTags),
             this.indexMapper.normalizeFields(minFilters, Double.NaN),
             this.indexMapper.normalizeFields(maxFilters, Double.NaN),
-            this.indexMapper.normalizeScores(preferences, 0.),
+            this.indexMapper.normalizeScores(preferences, 1.0),
             limit
         );
     }
