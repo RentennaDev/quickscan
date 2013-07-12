@@ -1,6 +1,7 @@
 package co.deepthought.quickscan.store;
 
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -10,29 +11,31 @@ import org.sqlite.JDBC;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  *  DocumentStore persists denormalized documents to disk, using SQLITE for portable storage.
  */
 public class DocumentStore {
 
+    private final ConnectionSource connectionSource;
     private final Document.Dao documentDao;
     private final Field.Dao fieldDao;
     private final Score.Dao scoreDao;
     private final Tag.Dao tagDao;
 
     public DocumentStore(final String sqliteFilePath) throws SQLException {
-        ConnectionSource connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + sqliteFilePath);
+        this.connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + sqliteFilePath);
 
-        this.documentDao = new Document.Dao(connectionSource);
-        this.fieldDao = new Field.Dao(connectionSource);
-        this.scoreDao = new Score.Dao(connectionSource);
-        this.tagDao = new Tag.Dao(connectionSource);
+        this.documentDao = new Document.Dao(this.connectionSource);
+        this.fieldDao = new Field.Dao(this.connectionSource);
+        this.scoreDao = new Score.Dao(this.connectionSource);
+        this.tagDao = new Tag.Dao(this.connectionSource);
 
-        TableUtils.createTableIfNotExists(connectionSource, Document.class);
-        TableUtils.createTableIfNotExists(connectionSource, Field.class);
-        TableUtils.createTableIfNotExists(connectionSource, Score.class);
-        TableUtils.createTableIfNotExists(connectionSource, Tag.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, Document.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, Field.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, Score.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, Tag.class);
     }
 
     public Document createDocument(final String documentId, final String resultId, final String shardId)
@@ -141,6 +144,10 @@ public class DocumentStore {
         else {
             this.documentDao.create(document);
         }
+    }
+
+    public void transaction(final Callable<Void> callable) throws SQLException {
+        TransactionManager.callInTransaction(this.connectionSource, callable);
     }
 
 }

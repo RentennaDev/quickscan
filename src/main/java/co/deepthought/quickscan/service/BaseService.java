@@ -36,9 +36,6 @@ public abstract class BaseService<InputType extends Validated, OutputType> {
     }
 
     public InputType validateInput(final String inputJson) throws ServiceFailure {
-        // TODO: handle error conditions?
-        // JsonSyntaxException
-        // ServiceFailure
         final Gson gson = new Gson();
         try {
             final InputType inputObject = gson.fromJson(inputJson, this.getInputClass());
