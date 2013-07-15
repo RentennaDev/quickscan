@@ -12,10 +12,12 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class SearchServer extends AbstractHandler {
 
@@ -23,18 +25,25 @@ public class SearchServer extends AbstractHandler {
 
     public static void main(final String[] args) throws Exception {
         PropertyConfigurator.configure("resources/log4j.properties");
-        final SearchServer searchServer = new SearchServer();
+        final Properties prop = new Properties();
+        prop.load(new FileInputStream("resources/config.properties"));
+        final SearchServer searchServer = new SearchServer(
+            prop.getProperty("dbfile"),
+            Integer.parseInt(prop.getProperty("port")));
         searchServer.startServer();
     }
 
+    private final int port;
     private final Map<String, BaseService> services;
 
-    public SearchServer() throws SQLException {
+    public SearchServer(final String dbFile, final int port) throws SQLException {
+        this.port = port;
+
         LOGGER.info("Preparing services...");
         final long start = System.currentTimeMillis();
 
         // TODO: make me configurable
-        final DocumentStore docStore = new DocumentStore(":memory:");
+        final DocumentStore docStore = new DocumentStore(dbFile);
         final SearcherManager manager = new SearcherManager(docStore);
         manager.index();
 
@@ -59,18 +68,24 @@ public class SearchServer extends AbstractHandler {
         final String path = request.getPathInfo();
         final String payload = request.getParameter("payload");
 
+        response.setContentType("text/html;charset=utf-8");
         try {
             final String responeString = this.handleService(path, payload);
-            response.setContentType("text/html;charset=utf-8");
-            response.setStatus(HttpServletResponse.SC_OK);
-            request.setHandled(true);
-            response.getWriter().print(responeString);
-            final long end = System.currentTimeMillis();
-            LOGGER.info("Service: " + path + " OK " + (end-start));
+            if(responeString != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().print(responeString);
+                final long end = System.currentTimeMillis();
+                LOGGER.info("200 " + path + ":" + (end-start));
+            }
+            else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                LOGGER.error("404 " + path);
+            }
         } catch(final Exception e) {
-            // TODO: log critical, create a safe 500 response
+            LOGGER.error("500 " + path, e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-
+        request.setHandled(true);
     }
 
     public String handleService(final String path, final String payload) {
@@ -79,13 +94,12 @@ public class SearchServer extends AbstractHandler {
             return service.handleJson(payload);
         }
         else {
-            // 404?
             return null;
         }
     }
 
     public void startServer() throws Exception {
-        Server server = new Server(5400);
+        Server server = new Server(this.port);
         server.setHandler(this);
         server.start();
         server.join();
