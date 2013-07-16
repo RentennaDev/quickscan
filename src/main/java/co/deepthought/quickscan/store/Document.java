@@ -68,8 +68,8 @@ public class Document {
         this.tags.add(tag);
     }
 
-    public void addScore(final String scoreName, final double value) throws SQLException {
-        final Score score = new Score(scoreName, value);
+    public void addScore(final String scoreName, final boolean phantom, final double value) throws SQLException {
+        final Score score = new Score(scoreName, phantom, value);
         this.scores.add(score);
     }
 

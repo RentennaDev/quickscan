@@ -1,6 +1,5 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.Score;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,11 +9,11 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class IndexMapperTest {
+public class IndexMapTest {
 
-    private IndexMapper mapper;
+    private IndexMap map;
 
-    public static IndexMapper getMockMapper() {
+    public static IndexMap getMockMapper() {
         final List<String> tags = new ArrayList<String>();
         for(int i = 0 ;i < 130; i++) {
             tags.add(Integer.toString(i));
@@ -27,31 +26,31 @@ public class IndexMapperTest {
         for(int i = 0 ;i < 5; i++) {
             scores.add("score-" + Integer.toString(i));
         }
-        return new IndexMapper(tags, fields, scores);
+        return new IndexMap(tags, fields, scores);
     }
 
     @Before
     public void setUp() {
-        this.mapper = IndexMapperTest.getMockMapper();
+        this.map = IndexMapTest.getMockMapper();
     }
 
     @Test
     public void testGetTagPage() {
-        assertEquals(0, IndexMapper.getTagPage(0));
-        assertEquals(0, IndexMapper.getTagPage(1));
-        assertEquals(0, IndexMapper.getTagPage(63));
-        assertEquals(1, IndexMapper.getTagPage(64));
-        assertEquals(1, IndexMapper.getTagPage(127));
-        assertEquals(2, IndexMapper.getTagPage(128));
+        assertEquals(0, IndexMap.getTagPage(0));
+        assertEquals(0, IndexMap.getTagPage(1));
+        assertEquals(0, IndexMap.getTagPage(63));
+        assertEquals(1, IndexMap.getTagPage(64));
+        assertEquals(1, IndexMap.getTagPage(127));
+        assertEquals(2, IndexMap.getTagPage(128));
     }
 
     @Test
     public void testGetTagMask() {
-        assertEquals(0x1L, IndexMapper.getTagMask(0));
-        assertEquals(0x2L, IndexMapper.getTagMask(1));
-        assertEquals(0x8L, IndexMapper.getTagMask(3));
-        assertEquals(0x8000000000000000L, IndexMapper.getTagMask(63));
-        assertEquals(0x1L, IndexMapper.getTagMask(64));
+        assertEquals(0x1L, IndexMap.getTagMask(0));
+        assertEquals(0x2L, IndexMap.getTagMask(1));
+        assertEquals(0x8L, IndexMap.getTagMask(3));
+        assertEquals(0x8000000000000000L, IndexMap.getTagMask(63));
+        assertEquals(0x1L, IndexMap.getTagMask(64));
     }
 
     @Test
@@ -60,7 +59,7 @@ public class IndexMapperTest {
         names.add("a");
         names.add("b");
         names.add("c");
-        final Map<String, Integer> nameMap = IndexMapper.mapNames(names);
+        final Map<String, Integer> nameMap = IndexMap.mapNames(names);
         assertEquals(names, nameMap.keySet());
         assertTrue(nameMap.values().contains(0));
         assertTrue(nameMap.values().contains(1));
@@ -73,7 +72,7 @@ public class IndexMapperTest {
         fields.put("field-0", 1.2);
         fields.put("field-3", 0.5);
         fields.put("field-FAKE", 99.0);
-        final double[] normalized = this.mapper.normalizeFields(fields, -1);
+        final double[] normalized = this.map.normalizeFields(fields, -1);
         assertArrayEquals(new double[] {1.2, -1, -1, 0.5, -1}, normalized, 0);
     }
 
@@ -83,14 +82,14 @@ public class IndexMapperTest {
         fields.put("score-0", 0.7);
         fields.put("score-3", 0.5);
         fields.put("score-100", 0.2);
-        final double[] normalized = this.mapper.normalizeScores(fields, 0);
+        final double[] normalized = this.map.normalizeScores(fields, 0);
         assertArrayEquals(new double[] {0.7, 0, 0, 0.5, 0}, normalized, 0);
     }
 
     @Test
     public void testNormalizeTags() {
         final List<String> tags = Arrays.asList("0", "10", "80", "121", "129", "babyfat");
-        final long[] normalized = this.mapper.normalizeTags(tags);
+        final long[] normalized = this.map.normalizeTags(tags);
         assertEquals(3, normalized.length);
         assertEquals(0x0000000000000401L, normalized[0]);
         assertEquals(0x0200000000010000L, normalized[1]);

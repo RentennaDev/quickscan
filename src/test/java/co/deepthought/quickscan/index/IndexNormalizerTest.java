@@ -17,8 +17,8 @@ public class IndexNormalizerTest {
 
     @Before
     public void setUp() throws SQLException {
-        final IndexMapper mapper = IndexMapperTest.getMockMapper();
-        this.normalizer = new IndexNormalizer(mapper);
+        final IndexMap map = IndexMapTest.getMockMapper();
+        this.normalizer = new IndexNormalizer(map);
         final DocumentStore store = new DocumentStore(":memory:");
         for(final Document document : DocumentTest.mockDocuments(store)) {
             this.normalizer.indexDocument(document);

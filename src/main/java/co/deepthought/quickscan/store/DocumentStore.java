@@ -77,38 +77,6 @@ public class DocumentStore {
         };
     }
 
-    public Set<String> getDistinctFields(final String shardId) throws SQLException {
-        final Set<String> result = new HashSet<String>();
-
-        final QueryBuilder<Document, Integer> documentQuery = this.documentDao.queryBuilder();
-        documentQuery.where().eq("shardId", shardId);
-
-        final QueryBuilder<Field, Integer> fieldQuery = this.fieldDao.queryBuilder();
-        fieldQuery.join(documentQuery);
-        fieldQuery.distinct().selectColumns("name");
-
-        for(final Field field : this.fieldDao.query(fieldQuery.prepare())) {
-            result.add(field.getName());
-        }
-        return result;
-    }
-
-    public Set<String> getDistinctScores(final String shardId) throws SQLException {
-        final Set<String> result = new HashSet<String>();
-
-        final QueryBuilder<Document, Integer> documentQuery = this.documentDao.queryBuilder();
-        documentQuery.where().eq("shardId", shardId);
-
-        final QueryBuilder<Score, Integer> scoreQuery = this.scoreDao.queryBuilder();
-        scoreQuery.join(documentQuery);
-        scoreQuery.distinct().selectColumns("name");
-
-        for(final Score score : this.scoreDao.query(scoreQuery.prepare())) {
-            result.add(score.getName());
-        }
-        return result;
-    }
-
     public Set<String> getDistinctShards() throws SQLException {
         final Set<String> result = new HashSet<String>();
 
@@ -118,22 +86,6 @@ public class DocumentStore {
 
         for(final Document document : this.documentDao.query(documentQuery.prepare())) {
             result.add(document.getShardId());
-        }
-        return result;
-    }
-
-    public Set<String> getDistinctTags(final String shardId) throws SQLException {
-        final Set<String> result = new HashSet<String>();
-
-        final QueryBuilder<Document, Integer> documentQuery = this.documentDao.queryBuilder();
-        documentQuery.where().eq("shardId", shardId);
-
-        final QueryBuilder<Tag, Integer> tagQuery = this.tagDao.queryBuilder();
-        tagQuery.join(documentQuery);
-        tagQuery.distinct().selectColumns("name");
-
-        for(final Tag tag : this.tagDao.query(tagQuery.prepare())) {
-            result.add(tag.getName());
         }
         return result;
     }

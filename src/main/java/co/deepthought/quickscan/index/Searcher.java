@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Maintains both an IndexMapper and an IndexShard and can perform searches on the dataset, yielding result ids.
+ * Maintains both an IndexMap and an IndexShard and can perform searches on the dataset, yielding result ids.
  */
 public class Searcher {
 
-    private final IndexMapper indexMapper;
+    private final IndexMap indexMap;
     private final IndexShard indexShard;
 
-    public Searcher(final IndexMapper indexMapper, final IndexShard indexShard) {
-        this.indexMapper = indexMapper;
+    public Searcher(final IndexMap indexMap, final IndexShard indexShard) {
+        this.indexMap = indexMap;
         this.indexShard = indexShard;
     }
 
@@ -27,11 +27,11 @@ public class Searcher {
             final int limit
         ) {
         return this.indexShard.scan(
-            this.indexMapper.normalizeTags(conjunctiveTags),
+            this.indexMap.normalizeTags(conjunctiveTags),
             this.normalizeDisjunctiveTags(disjunctiveTags),
-            this.indexMapper.normalizeFields(minFilters, Double.NaN),
-            this.indexMapper.normalizeFields(maxFilters, Double.NaN),
-            this.indexMapper.normalizeScores(preferences, 1.0),
+            this.indexMap.normalizeFields(minFilters, Double.NaN),
+            this.indexMap.normalizeFields(maxFilters, Double.NaN),
+            this.indexMap.normalizeScores(preferences, 1.0),
             limit
         );
     }
@@ -39,7 +39,7 @@ public class Searcher {
     public long[][] normalizeDisjunctiveTags(final List<List<String>> tagSets) {
         final List<long[]> normalizedTagSets = new ArrayList<long[]>();
         for(final List<String> tags : tagSets) {
-            normalizedTagSets.add(this.indexMapper.normalizeTags(tags));
+            normalizedTagSets.add(this.indexMap.normalizeTags(tags));
         }
         return normalizedTagSets.toArray(new long[normalizedTagSets.size()][]);
     }

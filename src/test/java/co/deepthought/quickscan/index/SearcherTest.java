@@ -14,8 +14,8 @@ public class SearcherTest {
 
     @Before
     public void setUp() {
-        final IndexMapper mapper= IndexMapperTest.getMockMapper();
-        this.searcher = new Searcher(mapper, null);
+        final IndexMap map = IndexMapTest.getMockMapper();
+        this.searcher = new Searcher(map, null);
     }
 
     @Test

@@ -17,19 +17,21 @@ public class Indexer {
     }
 
     public Searcher index(final String shardId) throws SQLException {
-        final IndexMapper indexMapper = new IndexMapper(
-            this.store.getDistinctTags(shardId),
-            this.store.getDistinctFields(shardId),
-            this.store.getDistinctScores(shardId)
-        );
+        // first pass to produce the map
+        final IndexMapper indexMapper = new IndexMapper();
+        for(final Document document : this.store.getDocuments(shardId)) {
+            indexMapper.inspect(document);
+        }
+        final IndexMap indexMap = indexMapper.map();
 
-        final IndexNormalizer normalizer = new IndexNormalizer(indexMapper);
+        // second pass to index the data
+        final IndexNormalizer normalizer = new IndexNormalizer(indexMap);
         for(final Document document : this.store.getDocuments(shardId)) {
             normalizer.indexDocument(document);
         }
 
         final IndexShard shard = normalizer.normalize();
-        return new Searcher(indexMapper, shard);
+        return new Searcher(indexMap, shard);
     }
 
 }

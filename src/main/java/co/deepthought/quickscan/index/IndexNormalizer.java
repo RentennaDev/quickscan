@@ -7,15 +7,15 @@ import java.util.List;
 
 public class IndexNormalizer {
 
-    private final IndexMapper indexMapper;
+    private final IndexMap indexMap;
 
     private final List<String> resultIds;
     private final List<long[]> tags;
     private final List<double[]> fields;
     private final List<double[]> scores;
 
-    public IndexNormalizer(final IndexMapper indexMapper) {
-        this.indexMapper = indexMapper;
+    public IndexNormalizer(final IndexMap indexMap) {
+        this.indexMap = indexMap;
         this.resultIds = new ArrayList<String>();
         this.tags = new ArrayList<long[]>();
         this.fields = new ArrayList<double[]>();
@@ -28,9 +28,9 @@ public class IndexNormalizer {
 
     public void indexDocument(final Document document) {
         this.resultIds.add(document.getResultId());
-        this.tags.add(this.indexMapper.normalizeTags(document.getTagNames()));
-        this.fields.add(this.indexMapper.normalizeFields(document.getFieldValues(), Double.NaN));
-        this.scores.add(this.indexMapper.normalizeScores(document.getScoreValues(), -1));
+        this.tags.add(this.indexMap.normalizeTags(document.getTagNames()));
+        this.fields.add(this.indexMap.normalizeFields(document.getFieldValues(), Double.NaN));
+        this.scores.add(this.indexMap.normalizeScores(document.getScoreValues(), -1));
     }
 
     public IndexShard normalize() {

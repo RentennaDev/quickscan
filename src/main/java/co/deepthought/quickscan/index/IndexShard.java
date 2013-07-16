@@ -116,15 +116,6 @@ public class IndexShard {
         }
     }
 
-    public List<SearchResult>[] getBucketsForSorting() {
-        final List<SearchResult>[] buckets = (ArrayList<SearchResult>[])
-            Array.newInstance(ArrayList.class, IndexShard.SORTING_RESOLUTION);
-        for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
-            buckets[i] = new ArrayList<SearchResult>();
-        }
-        return buckets;
-    }
-
     public Collection<SearchResult> sort(
             final boolean[] nonmatches,
             final double[] preferences,
@@ -150,7 +141,15 @@ public class IndexShard {
             }
         }
         Collections.sort(results);
-        return results.subList(0, number);
+
+        final Collection<SearchResult> limitedResults = new LinkedHashSet<SearchResult>();
+        for(final SearchResult result : results) {
+            limitedResults.add(result);
+            if(limitedResults.size() >= number) {
+                return limitedResults;
+            }
+        }
+        return limitedResults;
     }
 
 }

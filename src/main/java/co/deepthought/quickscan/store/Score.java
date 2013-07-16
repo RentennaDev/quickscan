@@ -29,19 +29,27 @@ public class Score {
     private String name;
 
     @DatabaseField(canBeNull = false)
+    private boolean phantom;
+
+    @DatabaseField(canBeNull = false)
     private double value;
 
     private Score() {
 
     }
 
-    public Score(final String name, final double value) {
+    public Score(final String name, final boolean phantom, final double value) {
         this.name = name;
+        this.phantom = phantom;
         this.value = value;
     }
 
     public String getName() {
         return this.name;
+    }
+
+    public boolean getPhantom() {
+        return this.phantom;
     }
 
     public double getValue() {

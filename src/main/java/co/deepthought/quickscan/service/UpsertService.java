@@ -14,13 +14,12 @@ public class UpsertService
         extends BaseService<UpsertService.Input, ServiceSuccess> {
 
     public static class Input extends Validated {
-
         public String documentId;
         public String resultId;
         public String shardId;
         public String[] tags;
         public Map<String, Double> fields;
-        public Map<String, Double> scores;
+        public Map<String, Score> scores;
         public Input() {}
 
         @Override
@@ -37,9 +36,15 @@ public class UpsertService
                 this.validateNonNull(field, "fields[]");
             }
             this.validateNonNull(this.scores, "scores");
-            for(final Double score : this.scores.values()) {
+            for(final Score score : this.scores.values()) {
                 this.validateNonNull(score, "scores[]");
             }
+        }
+
+        public static class Score {
+            public double value;
+            public boolean phantom;
+            public Score() {};
         }
     }
 
@@ -70,8 +75,9 @@ public class UpsertService
                         for(final Map.Entry<String, Double> field : input.fields.entrySet()) {
                             document.addField(field.getKey(), field.getValue());
                         }
-                        for(final Map.Entry<String, Double> score : input.scores.entrySet()) {
-                            document.addScore(score.getKey(), score.getValue());
+                        for(final Map.Entry<String, Input.Score> item : input.scores.entrySet()) {
+                            final Input.Score score = item.getValue();
+                            document.addScore(item.getKey(), score.phantom, score.value);
                         }
                         return null;
                     }
