@@ -23,18 +23,18 @@ public class SearcherManagerTest {
     }
 
     public static void assertIndexed(final Searcher searcher) {
-        final Collection<String> results = searcher.search(
+        final Collection<SearchResult> results = searcher.search(
             new ArrayList<String>(),
             new ArrayList<List<String>>(),
             new HashMap<String, Double>(),
             new HashMap<String, Double>(),
             new HashMap<String, Double>(),
             100);
-        final Set<String> resultSet = new HashSet<String>(results);
-        final Set<String> expected = new HashSet<String>();
-        expected.add("a");
-        expected.add("b");
-        expected.add("c");
+        final Set<SearchResult> resultSet = new HashSet<SearchResult>(results);
+        final Set<SearchResult> expected = new HashSet<SearchResult>();
+        expected.add(new SearchResult("a", null));
+        expected.add(new SearchResult("b", null));
+        expected.add(new SearchResult("c", null)); // equality only counts resultIds
         assertEquals(expected, resultSet);
     }
 

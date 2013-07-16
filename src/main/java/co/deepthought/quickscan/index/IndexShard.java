@@ -32,7 +32,7 @@ public class IndexShard {
         this.size = this.resultIds.length;
     }
 
-    public Collection<String> scan(
+    public Collection<SearchResult> scan(
             final long[] conjunctiveTags,
             final long[][] disjunctiveTags,
             final double[] minFilters,
@@ -116,26 +116,26 @@ public class IndexShard {
         }
     }
 
-    public List<String>[] getBucketsForSorting() {
-        final List<String>[] buckets = (ArrayList<String>[])
+    public List<SearchResult>[] getBucketsForSorting() {
+        final List<SearchResult>[] buckets = (ArrayList<SearchResult>[])
             Array.newInstance(ArrayList.class, IndexShard.SORTING_RESOLUTION);
         for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
-            buckets[i] = new ArrayList<String>();
+            buckets[i] = new ArrayList<SearchResult>();
         }
         return buckets;
     }
 
-    public Collection<String> sort(
+    public Collection<SearchResult> sort(
             final boolean[] nonmatches,
             final double[] preferences,
             final int number
         ) {
-        final List<String>[] buckets = this.sortToBuckets(nonmatches, preferences);
+        final List<SearchResult>[] buckets = this.sortToBuckets(nonmatches, preferences);
         return this.trimBuckets(buckets, number);
     }
 
-    public List<String>[] sortToBuckets(final boolean[] nonmatches, final double[] preferences) {
-        final List<String>[] buckets = this.getBucketsForSorting();
+    public List<SearchResult>[] sortToBuckets(final boolean[] nonmatches, final double[] preferences) {
+        final List<SearchResult>[] buckets = this.getBucketsForSorting();
 
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
@@ -152,16 +152,17 @@ public class IndexShard {
 
                 final double position = 1.0 - (total / weight);
                 final int bucket = (int) (IndexShard.SORTING_RESOLUTION * position);
-                buckets[bucket].add(this.resultIds[i]);
+                final SearchResult result = new SearchResult(this.resultIds[i], this.scores[i]);
+                buckets[bucket].add(result);
             }
         }
 
         return buckets;
     }
 
-    public Collection<String> trimBuckets(final List<String>[] buckets, int number) {
-        final LinkedHashSet<String> results = new LinkedHashSet<String>();
-        for(final List<String> bucket : buckets) {
+    public Collection<SearchResult> trimBuckets(final List<SearchResult>[] buckets, int number) {
+        final LinkedHashSet<SearchResult> results = new LinkedHashSet<SearchResult>();
+        for(final List<SearchResult> bucket : buckets) {
             results.addAll(bucket);
             if(results.size() >= number) {
                 // early return if we've passed the limit

@@ -39,9 +39,6 @@ public class UpsertService
             this.validateNonNull(this.scores, "scores");
             for(final Double score : this.scores.values()) {
                 this.validateNonNull(score, "scores[]");
-                if(score < 0 || score > 1) {
-                    throw new ServiceFailure("scores[] must on [0,1]");
-                }
             }
         }
     }

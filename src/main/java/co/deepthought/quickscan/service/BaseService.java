@@ -39,8 +39,13 @@ public abstract class BaseService<InputType extends Validated, OutputType> {
         final Gson gson = new Gson();
         try {
             final InputType inputObject = gson.fromJson(inputJson, this.getInputClass());
-            inputObject.validate();
-            return inputObject;
+            if(inputObject == null) {
+                throw new ServiceFailure("no payload");
+            }
+            else {
+                inputObject.validate();
+                return inputObject;
+            }
         }
         catch (final JsonSyntaxException failure) {
             throw new ServiceFailure(failure.getMessage());

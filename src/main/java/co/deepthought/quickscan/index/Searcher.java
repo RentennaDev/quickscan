@@ -18,7 +18,7 @@ public class Searcher {
         this.indexShard = indexShard;
     }
 
-    public Collection<String> search(
+    public Collection<SearchResult> search(
             final List<String> conjunctiveTags,
             final List<List<String>> disjunctiveTags,
             final Map<String, Double> minFilters,

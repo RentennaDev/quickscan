@@ -1,5 +1,6 @@
 package co.deepthought.quickscan.service;
 
+import co.deepthought.quickscan.index.SearchResult;
 import co.deepthought.quickscan.index.Searcher;
 import co.deepthought.quickscan.index.SearcherManager;
 import co.deepthought.quickscan.store.Document;
@@ -40,7 +41,7 @@ public class SearchService
 
     public static class Output {
         public String status = "success";
-        public Collection<String> results;
+        public Collection<SearchResult> results;
         public Output() {}
     }
 
@@ -63,7 +64,7 @@ public class SearchService
         }
 
         final long start = System.nanoTime();
-        final Collection<String> results = searcher.search(
+        final Collection<SearchResult> results = searcher.search(
             input.conjunctiveTags,
             input.disjunctiveTags,
             input.minFilters,

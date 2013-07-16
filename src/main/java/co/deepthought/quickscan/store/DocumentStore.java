@@ -38,6 +38,13 @@ public class DocumentStore {
         TableUtils.createTableIfNotExists(this.connectionSource, Tag.class);
     }
 
+    public void clean() throws SQLException {
+        TableUtils.clearTable(this.connectionSource, Document.class);
+        TableUtils.clearTable(this.connectionSource, Field.class);
+        TableUtils.clearTable(this.connectionSource, Score.class);
+        TableUtils.clearTable(this.connectionSource, Tag.class);
+    }
+
     public Document createDocument(final String documentId, final String resultId, final String shardId)
             throws SQLException {
         final Document document = new Document(documentId, resultId, shardId);
