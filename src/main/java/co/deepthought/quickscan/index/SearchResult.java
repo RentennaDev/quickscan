@@ -1,13 +1,28 @@
 package co.deepthought.quickscan.index;
 
-public class SearchResult {
+public class SearchResult implements Comparable<SearchResult> {
 
     private final String resultId;
     private final double[] scores;
+    private final double score;
 
-    public SearchResult(final String resultId, final double[] scores) {
+    public SearchResult(final String resultId, final double[] scores, final double score) {
         this.resultId = resultId;
         this.scores = scores;
+        this.score = score;
+    }
+
+    @Override
+    public int compareTo(final SearchResult other) {
+        if(other.score > this.score) {
+            return -1;
+        }
+        else if(other.score < this.score) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 
     @Override

@@ -32,9 +32,9 @@ public class SearcherManagerTest {
             100);
         final Set<SearchResult> resultSet = new HashSet<SearchResult>(results);
         final Set<SearchResult> expected = new HashSet<SearchResult>();
-        expected.add(new SearchResult("a", null));
-        expected.add(new SearchResult("b", null));
-        expected.add(new SearchResult("c", null)); // equality only counts resultIds
+        expected.add(new SearchResult("a", null, 0));
+        expected.add(new SearchResult("b", null, 0));
+        expected.add(new SearchResult("c", null, 0)); // equality only counts resultIds
         assertEquals(expected, resultSet);
     }
 

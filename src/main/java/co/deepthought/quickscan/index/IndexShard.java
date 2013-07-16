@@ -130,13 +130,8 @@ public class IndexShard {
             final double[] preferences,
             final int number
         ) {
-        final List<SearchResult>[] buckets = this.sortToBuckets(nonmatches, preferences);
-        return this.trimBuckets(buckets, number);
-    }
 
-    public List<SearchResult>[] sortToBuckets(final boolean[] nonmatches, final double[] preferences) {
-        final List<SearchResult>[] buckets = this.getBucketsForSorting();
-
+        final List<SearchResult> results = new ArrayList<SearchResult>();
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
                 double total = IndexShard.BASELINE_SCORE;
@@ -150,26 +145,12 @@ public class IndexShard {
                     }
                 }
 
-                final double position = 1.0 - (total / weight);
-                final int bucket = (int) (IndexShard.SORTING_RESOLUTION * position);
-                final SearchResult result = new SearchResult(this.resultIds[i], this.scores[i]);
-                buckets[bucket].add(result);
+                final SearchResult result = new SearchResult(this.resultIds[i], this.scores[i], (total/weight));
+                results.add(result);
             }
         }
-
-        return buckets;
-    }
-
-    public Collection<SearchResult> trimBuckets(final List<SearchResult>[] buckets, int number) {
-        final LinkedHashSet<SearchResult> results = new LinkedHashSet<SearchResult>();
-        for(final List<SearchResult> bucket : buckets) {
-            results.addAll(bucket);
-            if(results.size() >= number) {
-                // early return if we've passed the limit
-                return results;
-            }
-        }
-        return results;
+        Collections.sort(results);
+        return results.subList(0, number);
     }
 
 }
