@@ -1,8 +1,7 @@
 package co.deepthought.quickscan.service;
 
-import co.deepthought.quickscan.store.DocumentStore;
-
-import java.sql.SQLException;
+import co.deepthought.quickscan.store.ResultStore;
+import com.sleepycat.je.DatabaseException;
 
 /**
  * A service deleting documents from the store.
@@ -15,10 +14,10 @@ public class CleanService
         public void validate() throws ServiceFailure {}
     }
 
-    private final DocumentStore documentStore;
+    private final ResultStore resultStore;
 
-    public CleanService(final DocumentStore documentStore) {
-        this.documentStore = documentStore;
+    public CleanService(final ResultStore resultStore) {
+        this.resultStore = resultStore;
     }
 
     @Override
@@ -29,9 +28,9 @@ public class CleanService
     @Override
     public ServiceSuccess handle(final Input input) throws ServiceFailure {
         try {
-            this.documentStore.clean();
+            this.resultStore.clean();
             return new ServiceSuccess();
-        } catch (SQLException e) {
+        } catch (DatabaseException e) {
             // this is unlikely, why would this be a checked exception?
             throw new ServiceFailure("database error");
         }

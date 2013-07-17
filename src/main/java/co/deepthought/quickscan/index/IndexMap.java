@@ -1,5 +1,7 @@
 package co.deepthought.quickscan.index;
 
+import com.google.common.collect.Multimap;
+
 import java.util.*;
 
 /**
@@ -10,6 +12,7 @@ public class IndexMap {
     final private Map<String, Integer> tags;
     final private Map<String, Integer> fields;
     final private Map<String, Integer> scores;
+    final private Map<String, Percentiler> percentilers;
 
     public static long getTagMask(final int tagIndex) {
         return 1L << (tagIndex % Long.SIZE);
@@ -19,8 +22,8 @@ public class IndexMap {
         return tagIndex / Long.SIZE;
     }
 
-    public static Map<String, Integer> mapNames(final Iterable<String> names) {
-        final Map<String, Integer> nameMap = new HashMap<String, Integer>();
+    public static Map<String, Integer> mapNames(final Set<String> names) {
+        final Map<String, Integer> nameMap = new HashMap<>();
         int current = 0;
         for(final String name : names) {
             nameMap.put(name, current);
@@ -29,39 +32,54 @@ public class IndexMap {
         return nameMap;
     }
 
+    public static Map<String, Percentiler> mapPercentiles(final Multimap<String, Double> scores) {
+        final Map<String, Percentiler> percentilers = new HashMap<>();
+        for(final Map.Entry<String, Collection<Double>> entry : scores.asMap().entrySet()) {
+            percentilers.put(entry.getKey(), new Percentiler(entry.getValue()));
+        }
+        return percentilers;
+    }
+
     public IndexMap(
-        final Iterable<String> tagNames,
-        final Iterable<String> fieldNames,
-        final Iterable<String> scoreNames
+        final Set<String> tagNames,
+        final Set<String> fieldNames,
+        final Set<String> scoreNames,
+        final Multimap<String, Double> scores
     ) {
+        // add the special tags
+        tagNames.add("_doc");
+        tagNames.add("_nodoc");
+        tagNames.add("_unknown");
         this.tags = IndexMap.mapNames(tagNames);
         this.fields = IndexMap.mapNames(fieldNames);
         this.scores = IndexMap.mapNames(scoreNames);
+        this.percentilers = IndexMap.mapPercentiles(scores);
     }
 
     public int getTagPageCount() {
-        return (int) Math.ceil((1.0 + this.tags.size()) / Long.SIZE);
+        return (int) Math.ceil(((double) this.tags.size()) / Long.SIZE);
     }
 
     public double[] normalizeFields(final Map<String, Double> values, final double defaultValue) {
-        return this.normalizeNumbers(values, this.fields, defaultValue);
+        final double[] numbers = new double[this.fields.size()];
+        Arrays.fill(numbers, defaultValue);
+        for(final Map.Entry<String, Double> value : values.entrySet()) {
+            final Integer index = this.fields.get(value.getKey());
+            if(index != null) {
+                numbers[index] = value.getValue();
+            }
+        }
+        return numbers;
     }
 
     public double[] normalizeScores(final Map<String, Double> values, double defaultValue) {
-        return this.normalizeNumbers(values, this.scores, defaultValue);
-    }
-
-    public double[] normalizeNumbers(
-            final Map<String, Double> values,
-            final Map<String, Integer> nameMap,
-            final double defaultValue
-        ) {
-        final double[] numbers = new double[nameMap.size()];
+        final double[] numbers = new double[this.fields.size()];
         Arrays.fill(numbers, defaultValue);
-        for(final Map.Entry<String, Double> value : values.entrySet()) {
-            final Integer index = nameMap.get(value.getKey());
+        for(final Map.Entry<String, Double> entry : values.entrySet()) {
+            final Integer index = this.scores.get(entry.getKey());
             if(index != null) {
-                numbers[index] = value.getValue();
+                final Percentiler percentiler = this.percentilers.get(entry.getKey());
+                numbers[index] = percentiler.percentile(entry.getValue());
             }
         }
         return numbers;
@@ -72,7 +90,7 @@ public class IndexMap {
         for(final String tagName : tagNames) {
             Integer tagIndex = this.tags.get(tagName);
             if(tagIndex == null) {
-                tagIndex = this.tags.size();
+                tagIndex = this.tags.get("_unknown");
             }
             bits[IndexMap.getTagPage(tagIndex)] |= IndexMap.getTagMask(tagIndex);
         }

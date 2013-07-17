@@ -1,5 +1,7 @@
 package co.deepthought.quickscan.index;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,19 +16,28 @@ public class IndexMapTest {
     private IndexMap map;
 
     public static IndexMap getMockMapper() {
-        final List<String> tags = new ArrayList<String>();
+        final Set<String> tags = new LinkedHashSet<>();
         for(int i = 0 ;i < 130; i++) {
             tags.add(Integer.toString(i));
         }
-        final List<String> fields = new ArrayList<String>();
+
+        final Set<String> fields = new LinkedHashSet<>();
         for(int i = 0 ;i < 5; i++) {
             fields.add("field-" + Integer.toString(i));
         }
-        final List<String> scores = new ArrayList<String>();
-        for(int i = 0 ;i < 5; i++) {
+
+        final Set<String> scores = new LinkedHashSet<>();
+        for(int i = 0; i < 5; i++) {
             scores.add("score-" + Integer.toString(i));
         }
-        return new IndexMap(tags, fields, scores);
+
+        final Multimap<String, Double> scoreSamples = ArrayListMultimap.create();
+        for(int i = 0; i < 5; i++) {
+            for(double value = 0.0; value <= i * 10.0; value += 1.0) {
+                scoreSamples.put("score-" + Integer.toString(i), value);
+            }
+        }
+        return new IndexMap(tags, fields, scores, scoreSamples);
     }
 
     @Before
@@ -79,11 +90,12 @@ public class IndexMapTest {
     @Test
     public void testNormalizeScores() {
         final Map<String, Double> fields = new HashMap<String, Double>();
-        fields.put("score-0", 0.7);
-        fields.put("score-3", 0.5);
+        fields.put("score-0", 0.0);
+        fields.put("score-1", 5.0);
+        fields.put("score-3", 7.5);
         fields.put("score-100", 0.2);
         final double[] normalized = this.map.normalizeScores(fields, 0);
-        assertArrayEquals(new double[] {0.7, 0, 0, 0.5, 0}, normalized, 0);
+        assertArrayEquals(new double[] {0.99, 0.5, 0, 0.25, 0}, normalized, 0);
     }
 
     @Test
@@ -93,7 +105,7 @@ public class IndexMapTest {
         assertEquals(3, normalized.length);
         assertEquals(0x0000000000000401L, normalized[0]);
         assertEquals(0x0200000000010000L, normalized[1]);
-        assertEquals(0x0000000000000006L, normalized[2]);
+        assertEquals(0x0000000000000012L, normalized[2]);
     }
 
 }

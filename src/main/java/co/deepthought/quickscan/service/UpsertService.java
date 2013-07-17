@@ -1,11 +1,8 @@
 package co.deepthought.quickscan.service;
 
-import co.deepthought.quickscan.store.Document;
-import co.deepthought.quickscan.store.DocumentStore;
-
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import co.deepthought.quickscan.store.Result;
+import co.deepthought.quickscan.store.ResultStore;
+import com.sleepycat.je.DatabaseException;
 
 /**
  * A service inserting or updating documents to the store.
@@ -14,44 +11,27 @@ public class UpsertService
         extends BaseService<UpsertService.Input, ServiceSuccess> {
 
     public static class Input extends Validated {
-        public String documentId;
-        public String resultId;
-        public String shardId;
-        public String[] tags;
-        public Map<String, Double> fields;
-        public Map<String, Score> scores;
+        public Result result;
         public Input() {}
 
         @Override
         public void validate() throws ServiceFailure {
-            this.validateNonNull(this.documentId, "documentId");
-            this.validateNonNull(this.documentId, "resultId");
-            this.validateNonNull(this.documentId, "shardId");
-            this.validateNonNull(this.tags, "tags");
-            for(final String tag : this.tags) {
-                this.validateNonNull(tag, "tags[]");
-            }
-            this.validateNonNull(this.fields, "fields");
-            for(final Double field : this.fields.values()) {
-                this.validateNonNull(field, "fields[]");
-            }
-            this.validateNonNull(this.scores, "scores");
-            for(final Score score : this.scores.values()) {
-                this.validateNonNull(score, "scores[]");
-            }
+            this.validateNonNull(this.result, "result");
+            this.validateNonNull(this.result.getId(), "result.id");
+            this.validateNonNull(this.result.getShardId(), "result.shardId");
+            this.validateNonNull(this.result.getFields(), "result.fields");
+            this.validateNonNull(this.result.getScores(), "result.scores");
+            this.validateNonNull(this.result.getTags(), "result.tags");
+            this.validateNonNull(this.result.getDocuments(), "result.documents");
+            // TODO: check each field, score, tag, document
         }
 
-        public static class Score {
-            public double value;
-            public boolean phantom;
-            public Score() {};
-        }
     }
 
-    private final DocumentStore documentStore;
+    private final ResultStore resultStore;
 
-    public UpsertService(final DocumentStore documentStore) {
-        this.documentStore = documentStore;
+    public UpsertService(final ResultStore resultStore) {
+        this.resultStore = resultStore;
     }
 
     @Override
@@ -62,29 +42,9 @@ public class UpsertService
     @Override
     public ServiceSuccess handle(final Input input) throws ServiceFailure {
         try {
-            this.documentStore.transaction(
-                new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        UpsertService.this.documentStore.deleteById(input.documentId);
-                        final Document document = UpsertService.this.documentStore.createDocument(
-                            input.documentId, input.resultId, input.shardId);
-                        for(final String tag : input.tags) {
-                            document.addTag(tag);
-                        }
-                        for(final Map.Entry<String, Double> field : input.fields.entrySet()) {
-                            document.addField(field.getKey(), field.getValue());
-                        }
-                        for(final Map.Entry<String, Input.Score> item : input.scores.entrySet()) {
-                            final Input.Score score = item.getValue();
-                            document.addScore(item.getKey(), score.phantom, score.value);
-                        }
-                        return null;
-                    }
-                }
-            );
+            this.resultStore.persist(input.result);
             return new ServiceSuccess();
-        } catch (SQLException e) {
+        } catch (DatabaseException e) {
             // this is unlikely, why would this be a checked exception?
             throw new ServiceFailure("database error");
         }

@@ -1,11 +1,11 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.DocumentStore;
-import co.deepthought.quickscan.store.DocumentTest;
-import org.junit.Before;
+import co.deepthought.quickscan.store.ResultStore;
+import co.deepthought.quickscan.store.Result;
+import co.deepthought.quickscan.store.ResultTest;
+import com.sleepycat.je.DatabaseException;
 import org.junit.Test;
 
-import java.sql.SQLException;
 import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
@@ -13,16 +13,18 @@ import static junit.framework.Assert.assertEquals;
 public class SearcherManagerTest {
 
     @Test
-    public void testIndexing() throws SQLException {
-        final DocumentStore store = new DocumentStore(":memory:");
-        DocumentTest.mockDocuments(store);
+    public void testIndexing() throws DatabaseException {
+        final ResultStore store = new ResultStore(":tmp");
+        for(final Result result : ResultTest.mock()) {
+            store.persist(result);
+        }
         final SearcherManager manager = new SearcherManager(store);
         manager.index();
         final Searcher searcher = manager.getSearcher("a");
         SearcherManagerTest.assertIndexed(searcher);
     }
 
-    public static void assertIndexed(final Searcher searcher) {
+    public static void assertIndexed(final Searcher searcher) throws DatabaseException {
         final Collection<SearchResult> results = searcher.search(
             new ArrayList<String>(),
             new ArrayList<List<String>>(),
@@ -30,13 +32,13 @@ public class SearcherManagerTest {
             new HashMap<String, Double>(),
             new HashMap<String, Double>(),
             100);
-        final Set<SearchResult> resultSet = new HashSet<SearchResult>(results);
-        final Set<SearchResult> expected = new HashSet<SearchResult>();
-        expected.add(new SearchResult("a", null, 0));
-        expected.add(new SearchResult("b", null, 0));
-        expected.add(new SearchResult("c", null, 0)); // equality only counts resultIds
+        final Set<SearchResult> resultSet = new HashSet<>(results);
+        final Set<SearchResult> expected = new HashSet<>();
+        expected.add(new SearchResult("a", 0));
+        expected.add(new SearchResult("b", 0));
+        expected.add(new SearchResult("c", 0));
+        expected.add(new SearchResult("d", 0)); // equality only counts resultIds
         assertEquals(expected, resultSet);
     }
-
 
 }

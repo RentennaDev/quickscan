@@ -3,10 +3,8 @@ package co.deepthought.quickscan.service;
 import co.deepthought.quickscan.index.SearchResult;
 import co.deepthought.quickscan.index.Searcher;
 import co.deepthought.quickscan.index.SearcherManager;
-import co.deepthought.quickscan.store.Document;
-import co.deepthought.quickscan.store.DocumentStore;
+import com.sleepycat.je.DatabaseException;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -63,20 +61,22 @@ public class SearchService
             throw new ServiceFailure("shard not indexed, or has no data");
         }
 
-        final long start = System.nanoTime();
-        final Collection<SearchResult> results = searcher.search(
-            input.conjunctiveTags,
-            input.disjunctiveTags,
-            input.minFilters,
-            input.maxFilters,
-            input.preferences,
-            input.limit
-        );
-        System.out.println(System.nanoTime() - start);
-
-        final Output output = new Output();
-        output.results = results;
-        return output;
+        final Collection<SearchResult> results;
+        try {
+            results = searcher.search(
+                input.conjunctiveTags,
+                input.disjunctiveTags,
+                input.minFilters,
+                input.maxFilters,
+                input.preferences,
+                input.limit
+            );
+            final Output output = new Output();
+            output.results = results;
+            return output;
+        } catch (DatabaseException e) {
+            throw new ServiceFailure("database error");
+        }
     }
 
 }

@@ -1,9 +1,8 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.DocumentStore;
+import co.deepthought.quickscan.store.ResultStore;
+import com.sleepycat.je.DatabaseException;
 
-import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,23 +11,23 @@ import java.util.Map;
  */
 public class SearcherManager {
 
-    final private DocumentStore store;
+    final private ResultStore store;
     final private Indexer indexer;
     final private Map<String, Searcher> searchers;
 
-    public SearcherManager(final DocumentStore store) {
+    public SearcherManager(final ResultStore store) {
         this.store = store;
         this.indexer = new Indexer(store);
         this.searchers = new HashMap<String, Searcher>();
     }
 
-    public void index() throws SQLException {
-        for(final String shardId : this.store.getDistinctShards()) {
+    public void index() throws DatabaseException {
+        for(final String shardId : this.store.getDistinctShardIds()) {
             this.indexShard(shardId);
         }
     }
 
-    public void indexShard(final String shardId) throws SQLException {
+    public void indexShard(final String shardId) throws DatabaseException {
         final Searcher searcher = this.indexer.index(shardId);
         this.setSearcher(shardId, searcher);
     }

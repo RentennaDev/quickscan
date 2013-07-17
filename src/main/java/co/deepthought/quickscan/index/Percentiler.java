@@ -15,10 +15,30 @@ public class Percentiler {
         this.breakpoints = Percentiler.computeBreakpoints(sampleArray);
     }
 
+    public double percentile(double value) {
+        if(value < this.breakpoints[0]) {
+            return 0.01;
+        }
+        else {
+            for(int i = 1; i < 99; i++) {
+                final double next = this.breakpoints[i];
+                if(next > value) {
+                    final double previous = this.breakpoints[i-1];
+                    final double width = next - previous;
+                    final double offset = value - previous;
+                    final double proportion = offset / width;
+                    return (i/100.) + (0.01 * proportion);
+                }
+            }
+            // no breakpoint greater
+            return 0.99;
+        }
+    }
+
     public static double[] computeBreakpoints(final double[] sortedSamples) {
-        final double[] breakpoints =  new double[101];
-        for(int i = 0; i <= 100; i++) {
-            breakpoints[i] = Percentiler.interpolate(sortedSamples, i / 100.);
+        final double[] breakpoints =  new double[99];
+        for(int i = 1; i < 100; i++) {
+            breakpoints[i-1] = Percentiler.interpolate(sortedSamples, i / 100.);
         }
         return breakpoints;
     }

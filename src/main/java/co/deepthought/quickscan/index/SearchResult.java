@@ -3,12 +3,12 @@ package co.deepthought.quickscan.index;
 public class SearchResult implements Comparable<SearchResult> {
 
     private final String resultId;
-    private final double[] scores;
     private final double score;
 
-    public SearchResult(final String resultId, final double[] scores, final double score) {
+    private String payload;
+
+    public SearchResult(final String resultId, final double score) {
         this.resultId = resultId;
-        this.scores = scores;
         this.score = score;
     }
 
@@ -39,8 +39,8 @@ public class SearchResult implements Comparable<SearchResult> {
         return this.resultId;
     }
 
-    public double[] getScores() {
-        return this.scores;
+    public void setPayload(final String payload) {
+        this.payload = payload;
     }
 
 }

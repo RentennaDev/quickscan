@@ -1,37 +1,59 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.Document;
-import co.deepthought.quickscan.store.DocumentStore;
-
-import java.sql.SQLException;
+import co.deepthought.quickscan.store.Result;
+import co.deepthought.quickscan.store.ResultStore;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.persist.EntityCursor;
+import org.apache.log4j.Logger;
 
 /**
  * Can produce Searchers for various shards.
  */
 public class Indexer {
 
-    final private DocumentStore store;
+    final static Logger LOGGER = Logger.getLogger(Indexer.class.getCanonicalName());
 
-    public Indexer(final DocumentStore store) {
+    final private ResultStore store;
+
+    public Indexer(final ResultStore store) {
         this.store = store;
     }
 
-    public Searcher index(final String shardId) throws SQLException {
-        // first pass to produce the map
+    public Searcher index(final String shardId) throws DatabaseException {
+        final long start = System.currentTimeMillis();
+        final IndexMap indexMap = this.map(shardId);
+        final IndexShard shard = this.normalize(indexMap, shardId);
+        final long end = System.currentTimeMillis();
+        LOGGER.info("indexed " + shardId + " in " + (end-start) + "ms");
+        return new Searcher(indexMap, shard, this.store);
+    }
+
+    private IndexMap map(final String shardId) throws DatabaseException {
         final IndexMapper indexMapper = new IndexMapper();
-        for(final Document document : this.store.getDocuments(shardId)) {
-            indexMapper.inspect(document);
+        final EntityCursor<Result> cursor = this.store.getByShardId(shardId);
+        try {
+            for(final Result result : cursor) {
+                indexMapper.inspect(result);
+            }
         }
-        final IndexMap indexMap = indexMapper.map();
+        finally {
+            cursor.close();
+        }
+        return indexMapper.map();
+    }
 
-        // second pass to index the data
+    private IndexShard normalize(final IndexMap indexMap, final String shardId) throws DatabaseException {
         final IndexNormalizer normalizer = new IndexNormalizer(indexMap);
-        for(final Document document : this.store.getDocuments(shardId)) {
-            normalizer.indexDocument(document);
+        final EntityCursor<Result> cursor = this.store.getByShardId(shardId);
+        try {
+            for(final Result result : cursor) {
+                normalizer.index(result);
+            }
         }
-
-        final IndexShard shard = normalizer.normalize();
-        return new Searcher(indexMap, shard);
+        finally {
+            cursor.close();
+        }
+        return normalizer.normalize();
     }
 
 }

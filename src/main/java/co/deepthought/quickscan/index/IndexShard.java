@@ -1,6 +1,7 @@
 package co.deepthought.quickscan.index;
 
-import java.lang.reflect.Array;
+import org.apache.log4j.Logger;
+
 import java.util.*;
 
 /**
@@ -8,10 +9,11 @@ import java.util.*;
  */
 public class IndexShard {
 
+    final static Logger LOGGER = Logger.getLogger(IndexShard.class.getCanonicalName());
+
     public static final long ALL_HOT = ~0L;
     public static final double BASELINE_WEIGHT = 0.1;
     public static final double BASELINE_SCORE = 0.25 * BASELINE_WEIGHT;
-    public static final int SORTING_RESOLUTION = 256;
 
     private final int size;
     private final String[] resultIds;
@@ -40,8 +42,20 @@ public class IndexShard {
             final double[] preferences,
             final int number
         ) {
+        final long start = System.nanoTime();
         final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
-        return this.sort(nonmatches, preferences, number);
+        final long filtered = System.nanoTime();
+        LOGGER.info("filter in " + (filtered-start) + " ns");
+
+        final List<SearchResult> result = this.score(nonmatches, preferences);
+        final long scored = System.nanoTime();
+        LOGGER.info("score in " + (scored-filtered) + " ns");
+
+        final Collection<SearchResult> sortedResults = this.sort(result, number);
+        final long sorted = System.nanoTime();
+        LOGGER.info("sort in " + (sorted-scored) + " ns");
+
+        return sortedResults;
     }
 
     public boolean[] filter(
@@ -116,12 +130,7 @@ public class IndexShard {
         }
     }
 
-    public Collection<SearchResult> sort(
-            final boolean[] nonmatches,
-            final double[] preferences,
-            final int number
-        ) {
-
+    public List<SearchResult> score(final boolean[] nonmatches, final double[] preferences) {
         final List<SearchResult> results = new ArrayList<SearchResult>();
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
@@ -136,13 +145,17 @@ public class IndexShard {
                     }
                 }
 
-                final SearchResult result = new SearchResult(this.resultIds[i], this.scores[i], (total/weight));
+                final SearchResult result = new SearchResult(this.resultIds[i], (total/weight));
                 results.add(result);
             }
         }
+        return results;
+    }
+
+    public Collection<SearchResult> sort(final List<SearchResult> results, final int number) {
         Collections.sort(results);
 
-        final Collection<SearchResult> limitedResults = new LinkedHashSet<SearchResult>();
+        final Collection<SearchResult> limitedResults = new LinkedHashSet<>();
         for(final SearchResult result : results) {
             limitedResults.add(result);
             if(limitedResults.size() >= number) {

@@ -1,8 +1,7 @@
 package co.deepthought.quickscan.service;
 
 import co.deepthought.quickscan.index.SearcherManager;
-
-import java.sql.SQLException;
+import com.sleepycat.je.DatabaseException;
 
 /**
  * A service for indexing a shard and hotswapping it.
@@ -40,7 +39,7 @@ public class IndexService
                 this.manager.indexShard(input.shardId);
             }
             return new ServiceSuccess();
-        } catch (SQLException e) {
+        } catch (DatabaseException e) {
             // this is unlikely, why would this be a checked exception?
             throw new ServiceFailure("database error");
         }

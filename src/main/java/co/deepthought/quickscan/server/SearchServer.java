@@ -2,7 +2,8 @@ package co.deepthought.quickscan.server;
 
 import co.deepthought.quickscan.index.SearcherManager;
 import co.deepthought.quickscan.service.*;
-import co.deepthought.quickscan.store.DocumentStore;
+import co.deepthought.quickscan.store.ResultStore;
+import com.sleepycat.je.DatabaseException;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.jetty.server.Request;
@@ -14,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -36,14 +36,14 @@ public class SearchServer extends AbstractHandler {
     private final int port;
     private final Map<String, BaseService> services;
 
-    public SearchServer(final String dbFile, final int port) throws SQLException {
+    public SearchServer(final String dbFile, final int port) throws DatabaseException {
         this.port = port;
 
         LOGGER.info("Preparing services...");
         final long start = System.currentTimeMillis();
 
         // TODO: make me configurable
-        final DocumentStore docStore = new DocumentStore(dbFile);
+        final ResultStore docStore = new ResultStore(dbFile);
         final SearcherManager manager = new SearcherManager(docStore);
         manager.index();
 
