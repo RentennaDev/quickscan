@@ -1,66 +1,46 @@
 package co.deepthought.quickscan;
 
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.persist.*;
-import com.sleepycat.persist.model.*;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Tester {
 
-    @Entity
-    public static class Parent {
-        @PrimaryKey
-        public String name;
-        @SecondaryKey(relate = Relationship.MANY_TO_ONE)
-        public String shard;
-        public int age;
-        public Parent() {}
-    }
-
-
-    public static void main(String[] args) throws DatabaseException {
+    public static void main(String[] args) {
         final Random random = new Random();
+        final List<Double> numbers = new ArrayList<>();
+        for(int i = 0; i < 400; i++) {
+            numbers.add(random.nextDouble());
+        }
 
-        final EnvironmentConfig envConfig = new EnvironmentConfig();
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
-        final String dbName = "/tmp/db-" + random.nextInt();
-        final File file = new File(dbName);
-        file.mkdir();
+        long total = 0;
+        for(int i = 0; i < 1000; i++) {
+            final List newList = new ArrayList<>(numbers);
+            final long start = System.nanoTime();
 
-        System.out.println(dbName);
-        final Environment env = new Environment(file, envConfig);
+            Collections.sort(newList);
 
-        final StoreConfig storeConfig = new StoreConfig();
-        storeConfig.setAllowCreate(true);
-        storeConfig.setTransactional(false);
-        final EntityStore store = new EntityStore(env, "Store", storeConfig);
+            final long end = System.nanoTime();
+            total += (end-start);
+        }
+        System.out.println(total/1000);
 
-        final PrimaryIndex<String, Parent> index = store.getPrimaryIndex(String.class, Parent.class);
-        final SecondaryIndex<String, String, Parent> second = store.getSecondaryIndex(index, String.class, "shard");
+        total = 0;
+        for(int i = 0; i < 1000; i++) {
+            final long start = System.nanoTime();
 
-        System.out.println("here i am rock me like herman caine");
+            final int size = 128;
+            final List[] buckets = new List[size];
+            for(int j = 0; j < size; j++) {
+                buckets[j] = new ArrayList();
+            }
+            for(final Double number : numbers) {
+                final int position = (int) ((1.0-number) * size);
+                buckets[position].add(number);
+            }
 
-        final Parent p1 = new Parent();
-        p1.age = 12;
-        p1.name = "Charlie";
-        p1.shard = "cats";
-        index.put(p1);
-
-        final Parent p3 = new Parent();
-        p3.age = 14;
-        p3.name = "Charlie";
-        p3.shard = "rats";
-        index.put(p3);
-
-        final Parent p5 = index.get("Charlie");
-        System.out.println(p5.age);
+            final long end = System.nanoTime();
+            total += (end-start);
+        }
+        System.out.println(total/1000);
     }
 
 }

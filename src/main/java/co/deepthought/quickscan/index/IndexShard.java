@@ -14,6 +14,7 @@ public class IndexShard {
     public static final long ALL_HOT = ~0L;
     public static final double BASELINE_WEIGHT = 0.1;
     public static final double BASELINE_SCORE = 0.25 * BASELINE_WEIGHT;
+    public static final int SORTING_RESOLUTION = 128;
 
     private final int size;
     private final String[] resultIds;
@@ -47,15 +48,30 @@ public class IndexShard {
         final long filtered = System.nanoTime();
         LOGGER.info("filter in " + (filtered-start) + " ns");
 
-        final List<SearchResult> result = this.score(nonmatches, preferences);
-        final long scored = System.nanoTime();
-        LOGGER.info("score in " + (scored-filtered) + " ns");
 
-        final Collection<SearchResult> sortedResults = this.sort(result, number);
+        final List[] buckets = new List[IndexShard.SORTING_RESOLUTION];
+        for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
+            buckets[i] = new ArrayList();
+        }
+        final long bucketed = System.nanoTime();
+        LOGGER.info("buckets in " + (bucketed-filtered) + " ns");
+
+        this.score(buckets, nonmatches, preferences);
+        final long scored = System.nanoTime();
+        LOGGER.info("score in " + (scored-bucketed) + " ns");
+
+        final Collection<String> sortedResults = this.sort(buckets, number);
         final long sorted = System.nanoTime();
         LOGGER.info("sort in " + (sorted-scored) + " ns");
 
-        return sortedResults;
+        final Collection<SearchResult> realResults = new ArrayList<>();
+        for(final String string : sortedResults) {
+            realResults.add(new SearchResult(string, 0));
+        }
+        final long objs = System.nanoTime();
+        LOGGER.info("objectified in " + (objs-sorted) + " ns");
+
+        return realResults;
     }
 
     public boolean[] filter(
@@ -130,8 +146,7 @@ public class IndexShard {
         }
     }
 
-    public List<SearchResult> score(final boolean[] nonmatches, final double[] preferences) {
-        final List<SearchResult> results = new ArrayList<SearchResult>();
+    public void score(final List[] buckets, final boolean[] nonmatches, final double[] preferences) {
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
                 double total = IndexShard.BASELINE_SCORE;
@@ -145,21 +160,22 @@ public class IndexShard {
                     }
                 }
 
-                final SearchResult result = new SearchResult(this.resultIds[i], (total/weight));
-                results.add(result);
+//                final SearchResult result = new SearchResult(this.resultIds[i], (total/weight));
+//                results.add(result);
+                final int position = (int) ((1.0-total/weight) * IndexShard.SORTING_RESOLUTION);
+                buckets[position].add(this.resultIds[i]);
             }
         }
-        return results;
     }
 
-    public Collection<SearchResult> sort(final List<SearchResult> results, final int number) {
-        Collections.sort(results);
-
-        final Collection<SearchResult> limitedResults = new LinkedHashSet<>();
-        for(final SearchResult result : results) {
-            limitedResults.add(result);
-            if(limitedResults.size() >= number) {
-                return limitedResults;
+    public Collection<String> sort(final List[] buckets, final int number) {
+        final Collection<String> limitedResults = new LinkedHashSet<>();
+        for(final List bucket : buckets) {
+            for(final Object item : bucket) {
+                limitedResults.add((String)item);
+                if(limitedResults.size() >= number) {
+                    return limitedResults;
+                }
             }
         }
         return limitedResults;
