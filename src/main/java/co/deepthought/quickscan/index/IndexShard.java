@@ -35,7 +35,7 @@ public class IndexShard {
         this.size = this.resultIds.length;
     }
 
-    public Collection<SearchResult> scan(
+    public Collection<String> scan(
             final long[] conjunctiveTags,
             final long[][] disjunctiveTags,
             final double[] minFilters,
@@ -44,34 +44,17 @@ public class IndexShard {
             final int number
         ) {
         final long start = System.nanoTime();
+
         final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
         final long filtered = System.nanoTime();
         LOGGER.info("filter in " + (filtered-start) + " ns");
 
-
-        final List[] buckets = new List[IndexShard.SORTING_RESOLUTION];
-        for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
-            buckets[i] = new ArrayList();
-        }
-        final long bucketed = System.nanoTime();
-        LOGGER.info("buckets in " + (bucketed-filtered) + " ns");
-
-        this.score(buckets, nonmatches, preferences);
+        final List[] buckets = this.sortToBuckets(nonmatches, preferences);
+        final Collection<String> results = this.trimBuckets(buckets, number);
         final long scored = System.nanoTime();
-        LOGGER.info("score in " + (scored-bucketed) + " ns");
+        LOGGER.info("score in " + (scored-filtered) + " ns");
 
-        final Collection<String> sortedResults = this.sort(buckets, number);
-        final long sorted = System.nanoTime();
-        LOGGER.info("sort in " + (sorted-scored) + " ns");
-
-        final Collection<SearchResult> realResults = new ArrayList<>();
-        for(final String string : sortedResults) {
-            realResults.add(new SearchResult(string, 0));
-        }
-        final long objs = System.nanoTime();
-        LOGGER.info("objectified in " + (objs-sorted) + " ns");
-
-        return realResults;
+        return results;
     }
 
     public boolean[] filter(
@@ -146,7 +129,12 @@ public class IndexShard {
         }
     }
 
-    public void score(final List[] buckets, final boolean[] nonmatches, final double[] preferences) {
+    public List[] sortToBuckets(final boolean[] nonmatches, final double[] preferences) {
+        final List[] buckets = new List[IndexShard.SORTING_RESOLUTION];
+        for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
+            buckets[i] = new ArrayList();
+        }
+
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
                 double total = IndexShard.BASELINE_SCORE;
@@ -160,15 +148,15 @@ public class IndexShard {
                     }
                 }
 
-//                final SearchResult result = new SearchResult(this.resultIds[i], (total/weight));
-//                results.add(result);
                 final int position = (int) ((1.0-total/weight) * IndexShard.SORTING_RESOLUTION);
                 buckets[position].add(this.resultIds[i]);
             }
         }
+
+        return buckets;
     }
 
-    public Collection<String> sort(final List[] buckets, final int number) {
+    public Collection<String> trimBuckets(final List[] buckets, final int number) {
         final Collection<String> limitedResults = new LinkedHashSet<>();
         for(final List bucket : buckets) {
             for(final Object item : bucket) {

@@ -97,4 +97,15 @@ public class IndexMap {
         return bits;
     }
 
+    public Map<String, Double> projectScores(final Map<String, Double> values) {
+        final Map<String, Double> projected = new HashMap<>();
+        for(final Map.Entry<String, Double> entry : values.entrySet()) {
+            final Percentiler percentiler = this.percentilers.get(entry.getKey());
+            if(percentiler != null) {
+                projected.put(entry.getKey(), percentiler.percentile(entry.getValue()));
+            }
+        }
+        return projected;
+    }
+
 }

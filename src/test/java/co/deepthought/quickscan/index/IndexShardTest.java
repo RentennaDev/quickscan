@@ -3,6 +3,7 @@ package co.deepthought.quickscan.index;
 import org.junit.Before;
 import org.junit.Test;
 
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -171,82 +172,76 @@ public class IndexShardTest {
         this.assertMatches(271);
     }
 
-//    @Test
-//    public void testSortToBucketsFiltered() {
-//        this.nonmatches[0] = true;
-//        this.nonmatches[128] = true;
-//        this.nonmatches[512] = true;
-//        final double[] preferences = new double[] {1.0, 0.0, 0.0, 0.0};
-//        final List<SearchResult>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
-//        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-786"));
-//        assertEquals(this.bucketOf(buckets, "id-0"), -1);
-//        assertEquals(this.bucketOf(buckets, "id-128"), -1);
-//        assertEquals(this.bucketOf(buckets, "id-512"), -1);
-//    }
-//
-//    @Test
-//    public void testSortToBucketsMissingValues() {
-//        final double[] preferences = new double[] {0.0, 0.0, 0.0, 1.0};
-//        final List<SearchResult>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
-//        // explicit 0 worse than missing, which get baseline of 0.25
-//        assertTrue(this.bucketOf(buckets, "id-2") < this.bucketOf(buckets, "id-1"));
-//        assertTrue(this.bucketOf(buckets, "id-1") < this.bucketOf(buckets, "id-3"));
-//        assertTrue(this.bucketOf(buckets, "id-3") < this.bucketOf(buckets, "id-0"));
-//        assertTrue(this.bucketOf(buckets, "id-1002") < this.bucketOf(buckets, "id-1003"));
-//    }
-//
-//    @Test
-//    public void testSortToBucketsOneDimensional() {
-//        final double[] preferences = new double[] {1.0, 0.0, 0.0, 0.0};
-//        final List<SearchResult>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
-//        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-786"));
-//        assertTrue(this.bucketOf(buckets, "id-786") < this.bucketOf(buckets, "id-512"));
-//        assertTrue(this.bucketOf(buckets, "id-512") < this.bucketOf(buckets, "id-256"));
-//        assertTrue(this.bucketOf(buckets, "id-256") < this.bucketOf(buckets, "id-0"));
-//    }
-//
-//    @Test
-//    public void testSortToBucketsThreeDimensional() {
-//        final double[] preferences = new double[] {1.0, 1.0, 1.0, 0.0}; //equivalen to just third score
-//        final List<SearchResult>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
-//        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-1021"));
-//        assertTrue(this.bucketOf(buckets, "id-127") < this.bucketOf(buckets, "id-128"));
-//        assertTrue(this.bucketOf(buckets, "id-511") < this.bucketOf(buckets, "id-512"));
-//        assertTrue(this.bucketOf(buckets, "id-120") < this.bucketOf(buckets, "id-11"));
-//    }
-//
-//    @Test
-//    public void testSortToBucketsTwoDimensional() {
-//        final double[] preferences = new double[] {1.0, 1.0, 0.0, 0.0}; //inverse, so all should be same bucket
-//        final List<SearchResult>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
-//        assertEquals(this.bucketOf(buckets, "id-1023"), this.bucketOf(buckets, "id-786"));
-//        assertEquals(this.bucketOf(buckets, "id-786"), this.bucketOf(buckets, "id-512"));
-//        assertEquals(this.bucketOf(buckets, "id-512"), this.bucketOf(buckets, "id-256"));
-//        assertEquals(this.bucketOf(buckets, "id-256"), this.bucketOf(buckets, "id-0"));
-//    }
-//
-//    @Test
-//    public void testTrimBukets() {
-//        final List<SearchResult>[] buckets = (ArrayList<SearchResult>[])
-//            Array.newInstance(ArrayList.class, 4);
-//        buckets[0] = new ArrayList<SearchResult>();
-//        buckets[1] = new ArrayList<SearchResult>();
-//        buckets[2] = new ArrayList<SearchResult>();
-//        buckets[3] = new ArrayList<SearchResult>();
-//        buckets[0].add(new SearchResult("A", null));
-//        buckets[0].add(new SearchResult("B", null));
-//        buckets[1].add(new SearchResult("C", null));
-//        buckets[3].add(new SearchResult("B", null));
-//        buckets[3].add(new SearchResult("D", null));
-//        final Collection<SearchResult> result = this.shard.trimBuckets(buckets, 100);
-//        final SearchResult[] expected = new SearchResult[] {
-//            new SearchResult("A", null),
-//            new SearchResult("B", null),
-//            new SearchResult("C", null),
-//            new SearchResult("D", null)
-//        };
-//        assertArrayEquals(expected, result.toArray(new SearchResult[4]));
-//    }
+    @Test
+    public void testSortToBucketsFiltered() {
+        this.nonmatches[0] = true;
+        this.nonmatches[128] = true;
+        this.nonmatches[512] = true;
+        final double[] preferences = new double[] {1.0, 0.0, 0.0, 0.0};
+        final List<String>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
+        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-786"));
+        assertEquals(this.bucketOf(buckets, "id-0"), -1);
+        assertEquals(this.bucketOf(buckets, "id-128"), -1);
+        assertEquals(this.bucketOf(buckets, "id-512"), -1);
+    }
+
+    @Test
+    public void testSortToBucketsMissingValues() {
+        final double[] preferences = new double[] {0.0, 0.0, 0.0, 1.0};
+        final List<String>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
+        // explicit 0 worse than missing, which get baseline of 0.25
+        assertTrue(this.bucketOf(buckets, "id-2") < this.bucketOf(buckets, "id-1"));
+        assertTrue(this.bucketOf(buckets, "id-1") < this.bucketOf(buckets, "id-3"));
+        assertTrue(this.bucketOf(buckets, "id-3") < this.bucketOf(buckets, "id-0"));
+        assertTrue(this.bucketOf(buckets, "id-1002") < this.bucketOf(buckets, "id-1003"));
+    }
+
+    @Test
+    public void testSortToBucketsOneDimensional() {
+        final double[] preferences = new double[] {1.0, 0.0, 0.0, 0.0};
+        final List<String>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
+        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-786"));
+        assertTrue(this.bucketOf(buckets, "id-786") < this.bucketOf(buckets, "id-512"));
+        assertTrue(this.bucketOf(buckets, "id-512") < this.bucketOf(buckets, "id-256"));
+        assertTrue(this.bucketOf(buckets, "id-256") < this.bucketOf(buckets, "id-0"));
+    }
+
+    @Test
+    public void testSortToBucketsThreeDimensional() {
+        final double[] preferences = new double[] {1.0, 1.0, 1.0, 0.0}; //equivalen to just third score
+        final List<String>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
+        assertTrue(this.bucketOf(buckets, "id-1023") < this.bucketOf(buckets, "id-1021"));
+        assertTrue(this.bucketOf(buckets, "id-127") < this.bucketOf(buckets, "id-128"));
+        assertTrue(this.bucketOf(buckets, "id-511") < this.bucketOf(buckets, "id-512"));
+        assertTrue(this.bucketOf(buckets, "id-120") < this.bucketOf(buckets, "id-11"));
+    }
+
+    @Test
+    public void testSortToBucketsTwoDimensional() {
+        final double[] preferences = new double[] {1.0, 1.0, 0.0, 0.0}; //inverse, so all should be same bucket
+        final List<String>[] buckets = this.shard.sortToBuckets(this.nonmatches, preferences);
+        assertEquals(this.bucketOf(buckets, "id-1023"), this.bucketOf(buckets, "id-786"));
+        assertEquals(this.bucketOf(buckets, "id-786"), this.bucketOf(buckets, "id-512"));
+        assertEquals(this.bucketOf(buckets, "id-512"), this.bucketOf(buckets, "id-256"));
+        assertEquals(this.bucketOf(buckets, "id-256"), this.bucketOf(buckets, "id-0"));
+    }
+
+    @Test
+    public void testTrimBukets() {
+        final List[] buckets = new List[4];
+        buckets[0] = new ArrayList();
+        buckets[1] = new ArrayList();
+        buckets[2] = new ArrayList();
+        buckets[3] = new ArrayList();
+        buckets[0].add("A");
+        buckets[0].add("B");
+        buckets[1].add("C");
+        buckets[3].add("B");
+        buckets[3].add("D");
+        final Collection<String> result = this.shard.trimBuckets(buckets, 100);
+        final String[] expected = new String[] {"A", "B", "C", "D"};
+        assertArrayEquals(expected, result.toArray(new String[4]));
+    }
 
     private void assertMatches(final int index) {
         assertFalse(this.nonmatches[index]);
@@ -256,11 +251,11 @@ public class IndexShardTest {
         assertTrue(this.nonmatches[index]);
     }
 
-    private int bucketOf(final List<SearchResult>[] buckets, final String find) {
+    private int bucketOf(final List<String>[] buckets, final String find) {
         int count = 0;
-        for(final List<SearchResult> bucket : buckets) {
-            for(final SearchResult result : bucket) {
-                if(result.getResultId().equals(find)) {
+        for(final List<String> bucket : buckets) {
+            for(final String resultId : bucket) {
+                if(resultId.equals(find)) {
                     return count;
                 }
             }

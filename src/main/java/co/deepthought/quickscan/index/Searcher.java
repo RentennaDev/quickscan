@@ -36,7 +36,7 @@ public class Searcher {
             final int limit
         ) throws DatabaseException {
 
-        final Collection<SearchResult> searchResults = this.indexShard.scan(
+        final Collection<String> searchResults = this.indexShard.scan(
             this.indexMap.normalizeTags(conjunctiveTags),
             this.normalizeDisjunctiveTags(disjunctiveTags),
             this.indexMap.normalizeFields(minFilters, Double.NaN),
@@ -46,15 +46,16 @@ public class Searcher {
         );
 
         final long start = System.nanoTime();
-        for(final SearchResult searchResult : searchResults) {
-            final Result result = this.resultStore.getById(searchResult.getResultId());
-            searchResult.setPayload(result.getPayload());
-            // TODO: map scores!
+        final List<SearchResult> results = new ArrayList<>();
+        for(final String resultId : searchResults) {
+            final Result result = this.resultStore.getById(resultId);
+            final Map<String, Double> projectedScores = this.indexMap.projectScores(result.getScoreValues());
+            results.add(new SearchResult(resultId, result.getPayload(), projectedScores));
         }
         final long end = System.nanoTime();
         LOGGER.info("retrieved payloads in " + (end-start) + "ns");
 
-        return searchResults;
+        return results;
     }
 
     public long[][] normalizeDisjunctiveTags(final List<List<String>> tagSets) {

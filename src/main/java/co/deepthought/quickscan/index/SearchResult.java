@@ -1,46 +1,41 @@
 package co.deepthought.quickscan.index;
 
-public class SearchResult implements Comparable<SearchResult> {
+import java.util.Map;
+
+public class SearchResult {
 
     private final String resultId;
-    private final double score;
+    private final String payload;
+    private final Map<String, Double> scores;
 
-    private String payload;
-
-    public SearchResult(final String resultId, final double score) {
+    public SearchResult(final String resultId, final String payload, final Map<String, Double> scores) {
         this.resultId = resultId;
-        this.score = score;
-    }
-
-    @Override
-    public int compareTo(final SearchResult other) {
-        if(other.score > this.score) {
-            return 1;
-        }
-        else if(other.score < this.score) {
-            return -1;
-        }
-        else {
-            return 0;
-        }
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return this.resultId.equals(((SearchResult)other).resultId);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.resultId.hashCode();
+        this.payload = payload;
+        this.scores = scores;
     }
 
     public String getResultId() {
         return this.resultId;
     }
 
-    public void setPayload(final String payload) {
-        this.payload = payload;
+    public String getPayload() {
+        return this.payload;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SearchResult that = (SearchResult) o;
+
+        if (resultId != null ? !resultId.equals(that.resultId) : that.resultId != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return resultId != null ? resultId.hashCode() : 0;
+    }
 }

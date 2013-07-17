@@ -34,10 +34,10 @@ public class SearcherManagerTest {
             100);
         final Set<SearchResult> resultSet = new HashSet<>(results);
         final Set<SearchResult> expected = new HashSet<>();
-        expected.add(new SearchResult("a", 0));
-        expected.add(new SearchResult("b", 0));
-        expected.add(new SearchResult("c", 0));
-        expected.add(new SearchResult("d", 0)); // equality only counts resultIds
+        expected.add(new SearchResult("a", null, null));
+        expected.add(new SearchResult("b", null, null));
+        expected.add(new SearchResult("c", null, null));
+        expected.add(new SearchResult("d", null, null)); // equality only counts resultIds
         assertEquals(expected, resultSet);
     }
 
