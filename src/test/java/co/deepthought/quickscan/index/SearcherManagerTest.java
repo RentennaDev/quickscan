@@ -25,14 +25,15 @@ public class SearcherManagerTest {
     }
 
     public static void assertIndexed(final Searcher searcher) throws DatabaseException {
-        final Collection<SearchResult> results = searcher.search(
+        final PaginatedResults<SearchResult> results = searcher.search(
             new ArrayList<String>(),
             new ArrayList<List<String>>(),
             new HashMap<String, Double>(),
             new HashMap<String, Double>(),
             new HashMap<String, Double>(),
-            100);
-        final Set<SearchResult> resultSet = new HashSet<>(results);
+            100,
+            0);
+        final Set<SearchResult> resultSet = new HashSet<>(results.getResults());
         final Set<SearchResult> expected = new HashSet<>();
         expected.add(new SearchResult("a", null, null));
         expected.add(new SearchResult("b", null, null));

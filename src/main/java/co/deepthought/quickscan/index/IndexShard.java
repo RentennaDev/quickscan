@@ -1,5 +1,6 @@
 package co.deepthought.quickscan.index;
 
+import com.sleepycat.bind.tuple.TupleBase;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -35,7 +36,7 @@ public class IndexShard {
         this.size = this.resultIds.length;
     }
 
-    public Collection<String> scan(
+    public PaginatedResults<String> scan(
             final long[] conjunctiveTags,
             final long[][] disjunctiveTags,
             final double[] minFilters,
@@ -47,14 +48,15 @@ public class IndexShard {
 
         final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
         final long filtered = System.nanoTime();
-        LOGGER.info("filter in " + (filtered-start) + " ns");
+        LOGGER.info("filter in " + ((filtered-start)/1000) + "us");
 
-        final List[] buckets = this.sortToBuckets(nonmatches, preferences);
+        final List[] buckets = this.getBuckets();
+        final int total = this.sortToBuckets(buckets, nonmatches, preferences);
         final Collection<String> results = this.trimBuckets(buckets, number);
         final long scored = System.nanoTime();
-        LOGGER.info("score in " + (scored-filtered) + " ns");
+        LOGGER.info("score in " + ((scored-filtered)/1000) + "us");
 
-        return results;
+        return new PaginatedResults<>(results, total);
     }
 
     public boolean[] filter(
@@ -129,14 +131,21 @@ public class IndexShard {
         }
     }
 
-    public List[] sortToBuckets(final boolean[] nonmatches, final double[] preferences) {
+    public List[] getBuckets() {
         final List[] buckets = new List[IndexShard.SORTING_RESOLUTION];
         for(int i = 0; i < IndexShard.SORTING_RESOLUTION; i++) {
             buckets[i] = new ArrayList();
         }
+        return buckets;
+    }
+
+    public int sortToBuckets(final List[] buckets, final boolean[] nonmatches, final double[] preferences) {
+        int count = 0;
 
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
+                count += 1;
+
                 double total = IndexShard.BASELINE_SCORE;
                 double weight = IndexShard.BASELINE_WEIGHT;
 
@@ -153,7 +162,7 @@ public class IndexShard {
             }
         }
 
-        return buckets;
+        return count;
     }
 
     public Collection<String> trimBuckets(final List[] buckets, final int number) {
@@ -168,5 +177,6 @@ public class IndexShard {
         }
         return limitedResults;
     }
+
 
 }

@@ -1,5 +1,6 @@
 package co.deepthought.quickscan.service;
 
+import co.deepthought.quickscan.index.PaginatedResults;
 import co.deepthought.quickscan.index.SearchResult;
 import co.deepthought.quickscan.index.Searcher;
 import co.deepthought.quickscan.index.SearcherManager;
@@ -23,6 +24,7 @@ public class SearchService
         public Map<String, Double> maxFilters;
         public Map<String, Double> preferences;
         public int limit;
+        public int skip;
 
         @Override
         public void validate() throws ServiceFailure {
@@ -40,6 +42,7 @@ public class SearchService
     public static class Output {
         public String status = "success";
         public Collection<SearchResult> results;
+        public int total;
         public Output() {}
     }
 
@@ -61,7 +64,7 @@ public class SearchService
             throw new ServiceFailure("shard not indexed, or has no data");
         }
 
-        final Collection<SearchResult> results;
+        final PaginatedResults<SearchResult> results;
         try {
             results = searcher.search(
                 input.conjunctiveTags,
@@ -69,10 +72,12 @@ public class SearchService
                 input.minFilters,
                 input.maxFilters,
                 input.preferences,
-                input.limit
+                input.limit,
+                input.skip
             );
             final Output output = new Output();
-            output.results = results;
+            output.results = results.getResults();
+            output.total = results.getTotal();
             return output;
         } catch (DatabaseException e) {
             throw new ServiceFailure("database error");

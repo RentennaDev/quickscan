@@ -3,9 +3,12 @@ package co.deepthought.quickscan.server;
 import co.deepthought.quickscan.index.SearcherManager;
 import co.deepthought.quickscan.service.*;
 import co.deepthought.quickscan.store.ResultStore;
+
 import com.sleepycat.je.DatabaseException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -13,8 +16,10 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.FileInputStream;
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -47,9 +52,10 @@ public class SearchServer extends AbstractHandler {
         final SearcherManager manager = new SearcherManager(docStore);
         manager.index();
 
-        this.services = new HashMap<String, BaseService>();
+        this.services = new HashMap<>();
         this.services.put("/clean/", new CleanService(docStore));
         this.services.put("/delete/", new DeleteService(docStore));
+        this.services.put("/get/", new GetService(manager));
         this.services.put("/index/", new IndexService(manager));
         this.services.put("/search/", new SearchService(manager));
         this.services.put("/upsert/", new UpsertService(docStore));

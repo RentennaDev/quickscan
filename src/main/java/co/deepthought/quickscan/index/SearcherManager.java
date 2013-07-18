@@ -1,5 +1,6 @@
 package co.deepthought.quickscan.index;
 
+import co.deepthought.quickscan.store.Result;
 import co.deepthought.quickscan.store.ResultStore;
 import com.sleepycat.je.DatabaseException;
 
@@ -18,7 +19,25 @@ public class SearcherManager {
     public SearcherManager(final ResultStore store) {
         this.store = store;
         this.indexer = new Indexer(store);
-        this.searchers = new HashMap<String, Searcher>();
+        this.searchers = new HashMap<>();
+    }
+
+    public SearchResult getSearchResult(final String resultId) throws DatabaseException {
+        final Result result = this.store.getById(resultId);
+        if(result == null) {
+            return null;
+        }
+
+        final Searcher searcher = this.getSearcher(result.getShardId());
+        if(searcher == null) {
+            return null;
+        }
+
+        return searcher.getSearchResult(result);
+    }
+
+    public synchronized Searcher getSearcher(final String shardId) {
+        return this.searchers.get(shardId);
     }
 
     public void index() throws DatabaseException {
@@ -26,14 +45,9 @@ public class SearcherManager {
             this.indexShard(shardId);
         }
     }
-
     public void indexShard(final String shardId) throws DatabaseException {
         final Searcher searcher = this.indexer.index(shardId);
         this.setSearcher(shardId, searcher);
-    }
-
-    public synchronized Searcher getSearcher(final String shardId) {
-        return this.searchers.get(shardId);
     }
 
     private synchronized void setSearcher(final String shardId, final Searcher searcher) {

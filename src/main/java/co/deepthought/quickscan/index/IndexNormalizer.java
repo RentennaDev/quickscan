@@ -65,7 +65,7 @@ public class IndexNormalizer {
         for(final HavingFields item : items) {
             scores.putAll(item.getScoreValues());
         }
-        this.scores.add(this.indexMap.normalizeScores(scores, -1));
+        this.scores.add(this.indexMap.normalizeScores(scores, -1, true));
     }
 
     private void indexTags(final String extraTag, final HavingFields... items) {

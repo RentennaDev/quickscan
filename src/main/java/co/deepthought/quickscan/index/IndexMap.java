@@ -72,14 +72,22 @@ public class IndexMap {
         return numbers;
     }
 
-    public double[] normalizeScores(final Map<String, Double> values, double defaultValue) {
-        final double[] numbers = new double[this.fields.size()];
+    public double[] normalizeScores(final Map<String, Double> values, double defaultValue, boolean project) {
+        final double[] numbers = new double[this.scores.size()];
         Arrays.fill(numbers, defaultValue);
         for(final Map.Entry<String, Double> entry : values.entrySet()) {
             final Integer index = this.scores.get(entry.getKey());
             if(index != null) {
-                final Percentiler percentiler = this.percentilers.get(entry.getKey());
-                numbers[index] = percentiler.percentile(entry.getValue());
+                if(project) {
+                    final Percentiler percentiler = this.percentilers.get(entry.getKey());
+                    if(percentiler != null) {
+                        // TODO: why would this happen? only phantoms?
+                        numbers[index] = percentiler.percentile(entry.getValue());
+                    }
+                }
+                else {
+                    numbers[index] = entry.getValue();
+                }
             }
         }
         return numbers;
