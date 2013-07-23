@@ -69,7 +69,17 @@ public class ResultStore {
     }
 
     public Set<String> getDistinctShardIds() throws DatabaseException {
-        return this.shardIndex.map().keySet();
+        final Set<String> result = new HashSet<>();
+        final EntityCursor<String> keyCursor = this.shardIndex.keys();
+        try {
+            for(final String key : keyCursor) {
+                result.add(key);
+            }
+            return result;
+        }
+        finally {
+            keyCursor.close();
+        }
     }
 
     public Result getById(final String id) throws DatabaseException {

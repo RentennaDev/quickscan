@@ -12,14 +12,16 @@ public class IndexNormalizer {
 
     private final List<String> resultIds;
     private final List<long[]> tags;
-    private final List<double[]> fields;
+    private final List<double[]> maxFields;
+    private final List<double[]> minFields;
     private final List<double[]> scores;
 
     public IndexNormalizer(final IndexMap indexMap) {
         this.indexMap = indexMap;
         this.resultIds = new ArrayList<>();
         this.tags = new ArrayList<>();
-        this.fields = new ArrayList<>();
+        this.minFields = new ArrayList<>();
+        this.maxFields = new ArrayList<>();
         this.scores = new ArrayList<>();
     }
 
@@ -37,15 +39,15 @@ public class IndexNormalizer {
     private void indexResult(final Result result) {
         this.indexResultId(result);
         this.indexFields(result);
-        this.indexScores(result);
-        this.indexTags("_nodoc", result);
+        this.indexScores(false, result);
+        this.indexTags(false, result);
     }
 
     private void indexDocument(final Result result, final Document document) {
         this.indexResultId(result);
         this.indexFields(result, document);
-        this.indexScores(result, document);
-        this.indexTags("_doc", result, document);
+        this.indexScores(true, result, document);
+        this.indexTags(true, result, document);
     }
 
     private void indexResultId(final Result result) {
@@ -57,20 +59,32 @@ public class IndexNormalizer {
         for(final HavingFields item : items) {
             fields.putAll(item.getFieldValues());
         }
-        this.fields.add(this.indexMap.normalizeFields(fields, Double.NaN));
+        this.minFields.add(this.indexMap.normalizeFields(fields, Double.NEGATIVE_INFINITY));
+        this.maxFields.add(this.indexMap.normalizeFields(fields, Double.POSITIVE_INFINITY));
     }
 
-    private void indexScores(final HavingFields... items) {
+    private void indexScores(final boolean doc, final HavingFields... items) {
         final Map<String, Double> scores = new HashMap<>();
+        if(doc) {
+            scores.put("_doc", 1.0);
+        }
+        else {
+            scores.put("_doc", 0.0);
+        }
         for(final HavingFields item : items) {
             scores.putAll(item.getScoreValues());
         }
         this.scores.add(this.indexMap.normalizeScores(scores, -1, true));
     }
 
-    private void indexTags(final String extraTag, final HavingFields... items) {
+    private void indexTags(final boolean doc, final HavingFields... items) {
         final Set<String> tagNames = new HashSet<>();
-        tagNames.add(extraTag);
+        if(doc) {
+            tagNames.add("_doc");
+        }
+        else {
+            tagNames.add("_nodoc");
+        }
         for(final HavingFields item : items) {
             tagNames.addAll(item.getTagNames());
         }
@@ -83,7 +97,8 @@ public class IndexNormalizer {
             return new IndexShard(
                 this.normalizeResultIds(),
                 this.normalizeTags(),
-                this.normalizeFields(),
+                this.normalizeMinFields(),
+                this.normalizeMaxFields(),
                 this.normalizeScores()
             );
         }
@@ -96,8 +111,12 @@ public class IndexNormalizer {
         return this.resultIds.toArray(new String[this.getSize()]);
     }
 
-    public double[][] normalizeFields() {
-        return IndexNormalizer.transpose(this.fields.toArray(new double[this.getSize()][]));
+    public double[][] normalizeMaxFields() {
+        return IndexNormalizer.transpose(this.maxFields.toArray(new double[this.getSize()][]));
+    }
+
+    public double[][] normalizeMinFields() {
+        return IndexNormalizer.transpose(this.minFields.toArray(new double[this.getSize()][]));
     }
 
     public double[][] normalizeScores() {

@@ -1,6 +1,5 @@
 package co.deepthought.quickscan.index;
 
-import com.sleepycat.bind.tuple.TupleBase;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -13,50 +12,28 @@ public class IndexShard {
     final static Logger LOGGER = Logger.getLogger(IndexShard.class.getCanonicalName());
 
     public static final long ALL_HOT = ~0L;
-    public static final double BASELINE_WEIGHT = 0.1;
-    public static final double BASELINE_SCORE = 0.25 * BASELINE_WEIGHT;
-    public static final int SORTING_RESOLUTION = 128;
+    public static final int SORTING_RESOLUTION = 256;
 
     private final int size;
     private final String[] resultIds;
     private final long[][] tags;
-    private final double[][] fields;
+    private final double[][] minFields;
+    private final double[][] maxFields;
     private final double[][] scores;
 
     public IndexShard(
             final String[] resultIds,
             final long[][] tags,
-            final double[][] fields,
+            final double[][] minFields,
+            final double[][] maxFields,
             final double[][] scores
         ) {
         this.resultIds = resultIds;
         this.tags = tags;
-        this.fields = fields;
+        this.minFields = minFields;
+        this.maxFields = maxFields;
         this.scores = scores;
         this.size = this.resultIds.length;
-    }
-
-    public PaginatedResults<String> scan(
-            final long[] conjunctiveTags,
-            final long[][] disjunctiveTags,
-            final double[] minFilters,
-            final double[] maxFilters,
-            final double[] preferences,
-            final int number
-        ) {
-        final long start = System.nanoTime();
-
-        final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
-        final long filtered = System.nanoTime();
-        LOGGER.info("filter in " + ((filtered-start)/1000) + "us");
-
-        final List[] buckets = this.getBuckets();
-        final int total = this.sortToBuckets(buckets, nonmatches, preferences);
-        final Collection<String> results = this.trimBuckets(buckets, number);
-        final long scored = System.nanoTime();
-        LOGGER.info("score in " + ((scored-filtered)/1000) + "us");
-
-        return new PaginatedResults<>(results, total);
     }
 
     public boolean[] filter(
@@ -75,11 +52,11 @@ public class IndexShard {
             this.filterConjunctive(nonmatches, i, conjunctiveTags[i]);
         }
 
-        for(int i = 0; i < this.fields.length; i++) {
+        for(int i = 0; i < this.minFields.length; i++) {
             this.filterMin(nonmatches, i, minFilters[i]);
         }
 
-        for(int i = 0; i < this.fields.length; i++) {
+        for(int i = 0; i < this.maxFields.length; i++) {
             this.filterMax(nonmatches, i, maxFilters[i]);
         }
 
@@ -115,7 +92,7 @@ public class IndexShard {
 
     public void filterMax(final boolean[] nonmatches, final int index, final double comparison) {
         if(!Double.isNaN(comparison)) {
-            final double[] values = this.fields[index];
+            final double[] values = this.maxFields[index];
             for(int i = 0; i < this.size; i++) {
                 nonmatches[i] |= (values[i] > comparison);
             }
@@ -124,7 +101,7 @@ public class IndexShard {
 
     public void filterMin(final boolean[] nonmatches, final int index, final double comparison) {
         if(!Double.isNaN(comparison)) {
-            final double[] values = this.fields[index];
+            final double[] values = this.minFields[index];
             for(int i = 0; i < this.size; i++) {
                 nonmatches[i] |= (values[i] < comparison);
             }
@@ -139,15 +116,35 @@ public class IndexShard {
         return buckets;
     }
 
-    public int sortToBuckets(final List[] buckets, final boolean[] nonmatches, final double[] preferences) {
-        int count = 0;
 
+    public PaginatedResults<String> scan(
+            final long[] conjunctiveTags,
+            final long[][] disjunctiveTags,
+            final double[] minFilters,
+            final double[] maxFilters,
+            final double[] preferences,
+            final int number
+        ) {
+        final long start = System.nanoTime();
+
+        final boolean[] nonmatches = this.filter(conjunctiveTags, disjunctiveTags, minFilters, maxFilters);
+        final long filtered = System.nanoTime();
+        LOGGER.info("filter in " + ((filtered-start)/1000) + "us");
+
+        final List[] buckets = this.getBuckets();
+        this.sortToBuckets(buckets, nonmatches, preferences);
+        final PaginatedResults<String> results = this.trimBuckets(buckets, number);
+        final long scored = System.nanoTime();
+        LOGGER.info("score in " + ((scored-filtered)/1000) + "us");
+
+        return results;
+    }
+
+    public void sortToBuckets(final List[] buckets, final boolean[] nonmatches, final double[] preferences) {
         for(int i = 0; i < this.size; i++) {
             if(!nonmatches[i]) {
-                count += 1;
-
-                double total = IndexShard.BASELINE_SCORE;
-                double weight = IndexShard.BASELINE_WEIGHT;
+                double total = 0;
+                double weight = 0;
 
                 final double[] score = scores[i];
                 for(int j = 0; j < score.length; j++) {
@@ -157,25 +154,27 @@ public class IndexShard {
                     }
                 }
 
-                final int position = (int) ((1.0-total/weight) * IndexShard.SORTING_RESOLUTION);
-                buckets[position].add(this.resultIds[i]);
-            }
-        }
-
-        return count;
-    }
-
-    public Collection<String> trimBuckets(final List[] buckets, final int number) {
-        final Collection<String> limitedResults = new LinkedHashSet<>();
-        for(final List bucket : buckets) {
-            for(final Object item : bucket) {
-                limitedResults.add((String)item);
-                if(limitedResults.size() >= number) {
-                    return limitedResults;
+                if(weight > 0) {
+                    final int position = (int) ((1.0-total/weight) * IndexShard.SORTING_RESOLUTION);
+                    buckets[position].add(this.resultIds[i]);
                 }
             }
         }
-        return limitedResults;
+    }
+
+    public PaginatedResults<String> trimBuckets(final List[] buckets, final int number) {
+        final Set<String> disinctIds = new HashSet<>();
+        final List<String> resultIds = new ArrayList<>();
+        for(final List bucket : buckets) {
+            for(final Object item : bucket) {
+                if(disinctIds.add((String)item)) {
+                    if(resultIds.size() < number) {
+                        resultIds.add((String)item);
+                    }
+                }
+            }
+        }
+        return new PaginatedResults<>(resultIds, disinctIds.size());
     }
 
 

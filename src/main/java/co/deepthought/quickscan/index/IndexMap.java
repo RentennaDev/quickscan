@@ -50,6 +50,12 @@ public class IndexMap {
         tagNames.add("_doc");
         tagNames.add("_nodoc");
         tagNames.add("_unknown");
+
+        // add the special scores
+        scoreNames.add("_doc");
+        scores.put("_doc", 0.0);
+        scores.put("_doc", 1.0);
+
         this.tags = IndexMap.mapNames(tagNames);
         this.fields = IndexMap.mapNames(fieldNames);
         this.scores = IndexMap.mapNames(scoreNames);

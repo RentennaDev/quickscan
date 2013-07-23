@@ -37,18 +37,18 @@ public class IndexShardTest {
                 tags[1][i] |= (1L << 1); // [second word, first bit set for evens]
             }
 
-            scores[i][0] = i/1024.;
-            scores[i][1] = 1.-(i/1024.);
-            scores[i][2] = (i % 128)/128.;
+            scores[i][0] = (1+i)/1026.;
+            scores[i][1] = 1.-scores[i][0];
+            scores[i][2] = (1 + (i % 128))/130.;
 
             if(i % 4 == 0) {
-                scores[i][3] = 0;
+                scores[i][3] = 0.01;
             }
             else if(i % 4 == 1) {
                 scores[i][3] = 0.5;
             }
             else if(i % 4 == 2) {
-                scores[i][3] = 1;
+                scores[i][3] = 0.99;
             }
             else {
                 scores[i][3] = -1;
@@ -57,6 +57,7 @@ public class IndexShardTest {
         this.shard = new IndexShard(
             resultIds,
             tags,
+            fields,
             fields,
             scores
         );
@@ -191,11 +192,10 @@ public class IndexShardTest {
         final double[] preferences = new double[] {0.0, 0.0, 0.0, 1.0};
         final List<String>[] buckets = this.shard.getBuckets();
         this.shard.sortToBuckets(buckets, this.nonmatches, preferences);
-        // explicit 0 worse than missing, which get baseline of 0.25
         assertTrue(this.bucketOf(buckets, "id-2") < this.bucketOf(buckets, "id-1"));
-        assertTrue(this.bucketOf(buckets, "id-1") < this.bucketOf(buckets, "id-3"));
+        assertTrue(this.bucketOf(buckets, "id-3") < this.bucketOf(buckets, "id-1"));
         assertTrue(this.bucketOf(buckets, "id-3") < this.bucketOf(buckets, "id-0"));
-        assertTrue(this.bucketOf(buckets, "id-1002") < this.bucketOf(buckets, "id-1003"));
+        assertTrue(this.bucketOf(buckets, "id-1003") < this.bucketOf(buckets, "id-1002"));
     }
 
     @Test
@@ -243,9 +243,9 @@ public class IndexShardTest {
         buckets[1].add("C");
         buckets[3].add("B");
         buckets[3].add("D");
-        final Collection<String> result = this.shard.trimBuckets(buckets, 100);
+        final PaginatedResults<String> result = this.shard.trimBuckets(buckets, 100);
         final String[] expected = new String[] {"A", "B", "C", "D"};
-        assertArrayEquals(expected, result.toArray(new String[4]));
+        assertArrayEquals(expected, result.getResults().toArray(new String[4]));
     }
 
     private void assertMatches(final int index) {

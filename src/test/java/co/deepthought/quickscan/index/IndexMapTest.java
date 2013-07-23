@@ -66,7 +66,7 @@ public class IndexMapTest {
 
     @Test
     public void testMapNames() {
-        final Set<String> names = new HashSet<String>();
+        final Set<String> names = new HashSet<>();
         names.add("a");
         names.add("b");
         names.add("c");
@@ -79,7 +79,7 @@ public class IndexMapTest {
 
     @Test
     public void testNormalizeFields() {
-        final Map<String, Double> fields = new HashMap<String, Double>();
+        final Map<String, Double> fields = new HashMap<>();
         fields.put("field-0", 1.2);
         fields.put("field-3", 0.5);
         fields.put("field-FAKE", 99.0);
@@ -89,13 +89,14 @@ public class IndexMapTest {
 
     @Test
     public void testNormalizeScores() {
-        final Map<String, Double> fields = new HashMap<String, Double>();
+        final Map<String, Double> fields = new HashMap<>();
         fields.put("score-0", 0.0);
         fields.put("score-1", 5.0);
         fields.put("score-3", 7.5);
         fields.put("score-100", 0.2);
+        fields.put("_doc", 0.0);
         final double[] normalized = this.map.normalizeScores(fields, 0, true);
-        assertArrayEquals(new double[] {0.99, 0.5, 0, 0.25, 0}, normalized, 0);
+        assertArrayEquals(new double[] {0.99, 0.5, 0, 0.25, 0, 0.01}, normalized, 0);
     }
 
     @Test

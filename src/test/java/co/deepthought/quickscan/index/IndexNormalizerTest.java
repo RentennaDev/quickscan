@@ -32,28 +32,28 @@ public class IndexNormalizerTest {
     }
 
     @Test
-    public void testNormalizeFields() {
-        final double[][] normalized = this.normalizer.normalizeFields();
+    public void testNormalizeMinFields() {
+        final double[][] normalized = this.normalizer.normalizeMinFields();
         assertEquals(5, normalized.length);
         assertArrayEquals(new double[] {
-                Double.NaN, Double.NaN, Double.NaN, 100,
-                100,        Double.NaN, Double.NaN, Double.NaN},
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, 100,
+                100, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY},
             normalized[0], 0);
         assertArrayEquals(new double[] {
-                Double.NaN, 10,         10,         Double.NaN,
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN},
+                Double.NEGATIVE_INFINITY, 10, 10, Double.NEGATIVE_INFINITY,
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY},
             normalized[1], 0);
         assertArrayEquals(new double[] {
-                Double.NaN, 11,         11,         Double.NaN,
-                Double.NaN, Double.NaN, 12,         Double.NaN},
+                Double.NEGATIVE_INFINITY, 11, 11, Double.NEGATIVE_INFINITY,
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, 12, Double.NEGATIVE_INFINITY},
             normalized[2], 0);
         assertArrayEquals(new double[] {
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN,
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN},
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY},
             normalized[3], 0);
         assertArrayEquals(new double[] {
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN,
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN},
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY},
             normalized[4], 0);
     }
 
@@ -61,14 +61,14 @@ public class IndexNormalizerTest {
     public void testNormalizeScores() {
         final double[][] normalized = this.normalizer.normalizeScores();
         assertEquals(8, normalized.length);
-        assertArrayEquals(new double[]{-1, -1, -1, -1, -1}, normalized[0], 0);
-        assertArrayEquals(new double[]{-1, 0.6, -1, 0.5, -1}, normalized[1], 0);
-        assertArrayEquals(new double[] {-1,0.6, -1, 0.5, -1}, normalized[2], 0);
-        assertArrayEquals(new double[] {0.99, 0.8, -1, -1, -1}, normalized[3], 0);
-        assertArrayEquals(new double[] {0.99, 0.8, -1, 0.25, -1}, normalized[4], 0);
-        assertArrayEquals(new double[] {-1, 0.8, -1, -1, -1}, normalized[5], 0);
-        assertArrayEquals(new double[] {-1, 0.8, -1, 0.75, -1}, normalized[6], 0);
-        assertArrayEquals(new double[] {-1, 0.8, -1, 0.5, -1}, normalized[7], 0);
+        assertArrayEquals(new double[]{-1, -1, -1, -1, -1, 0.01}, normalized[0], 0);
+        assertArrayEquals(new double[]{-1, 0.6, -1, 0.5, -1, 0.01}, normalized[1], 0);
+        assertArrayEquals(new double[] {-1,0.6, -1, 0.5, -1, 0.99}, normalized[2], 0);
+        assertArrayEquals(new double[] {0.99, 0.8, -1, -1, -1, 0.01}, normalized[3], 0);
+        assertArrayEquals(new double[] {0.99, 0.8, -1, 0.25, -1, 0.99}, normalized[4], 0);
+        assertArrayEquals(new double[] {-1, 0.8, -1, -1, -1, 0.01}, normalized[5], 0);
+        assertArrayEquals(new double[] {-1, 0.8, -1, 0.75, -1, 0.99}, normalized[6], 0);
+        assertArrayEquals(new double[] {-1, 0.8, -1, 0.5, -1, 0.99}, normalized[7], 0);
     }
 
     @Test
