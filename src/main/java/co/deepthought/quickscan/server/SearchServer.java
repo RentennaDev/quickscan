@@ -108,6 +108,7 @@ public class SearchServer extends AbstractHandler {
     public void startServer() throws Exception {
         Server server = new Server(this.port);
         server.setHandler(this);
+        server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
         server.start();
         server.join();
     }
