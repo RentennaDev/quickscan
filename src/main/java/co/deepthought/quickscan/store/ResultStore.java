@@ -22,7 +22,7 @@ public class ResultStore {
     public ResultStore(final String filePath) throws DatabaseException {
         final EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
+        envConfig.setTransactional(true);
 
         final File file;
         if(filePath.equals(":tmp")) {
@@ -40,7 +40,7 @@ public class ResultStore {
 
         final StoreConfig storeConfig = new StoreConfig();
         storeConfig.setAllowCreate(true);
-        storeConfig.setTransactional(false);
+        storeConfig.setTransactional(true);
         this.store = new EntityStore(this.environment, "store", storeConfig);
 
         this.resultIndex = this.store.getPrimaryIndex(String.class, Result.class);
