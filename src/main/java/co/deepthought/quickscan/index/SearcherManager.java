@@ -42,12 +42,17 @@ public class SearcherManager {
 
     public void index() throws DatabaseException {
         for(final String shardId : this.store.getDistinctShardIds()) {
-            this.indexShard(shardId);
+            System.out.println("Indexing: " + shardId);
+            final long start = System.currentTimeMillis();
+            final int count = this.indexShard(shardId);
+            final long end = System.currentTimeMillis();
+            System.out.println("Indexed " + count + " documents in " + (end-start));
         }
     }
-    public void indexShard(final String shardId) throws DatabaseException {
+    public int indexShard(final String shardId) throws DatabaseException {
         final Searcher searcher = this.indexer.index(shardId);
         this.setSearcher(shardId, searcher);
+        return searcher.getSize();
     }
 
     private synchronized void setSearcher(final String shardId, final Searcher searcher) {

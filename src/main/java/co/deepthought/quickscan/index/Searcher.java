@@ -29,6 +29,10 @@ public class Searcher {
         return new SearchResult(document.getId(), document.getPayload(), projectedScores);
     }
 
+    public int getSize() {
+        return this.indexShard.getSize();
+    }
+
     public PaginatedResults<SearchResult> search(
             final List<String> conjunctiveTags,
             final List<List<String>> disjunctiveTags,

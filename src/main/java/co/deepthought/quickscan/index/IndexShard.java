@@ -116,6 +116,9 @@ public class IndexShard {
         return buckets;
     }
 
+    public int getSize() {
+        return this.size;
+    }
 
     public PaginatedResults<String> scan(
             final long[] conjunctiveTags,
@@ -163,18 +166,17 @@ public class IndexShard {
     }
 
     public PaginatedResults<String> trimBuckets(final List[] buckets, final int number) {
-        final Set<String> disinctIds = new HashSet<>();
+        int count = 0;
         final List<String> resultIds = new ArrayList<>();
         for(final List bucket : buckets) {
+            count += bucket.size();
             for(final Object item : bucket) {
-                if(disinctIds.add((String)item)) {
-                    if(resultIds.size() < number) {
-                        resultIds.add((String)item);
-                    }
+                if(resultIds.size() < number) {
+                    resultIds.add((String)item);
                 }
             }
         }
-        return new PaginatedResults<>(resultIds, disinctIds.size());
+        return new PaginatedResults<>(resultIds, count);
     }
 
 
