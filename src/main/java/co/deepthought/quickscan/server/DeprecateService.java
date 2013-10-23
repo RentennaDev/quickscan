@@ -39,8 +39,8 @@ public class DeprecateService
                 final Document document = this.documentStore.getById(id);
                 if(document != null) {
                     document.setDeprecated(true);
+                    this.documentStore.persist(document);
                 }
-                this.documentStore.persist(document);
             }
             return new ServiceSuccess();
         } catch (DatabaseException e) {
