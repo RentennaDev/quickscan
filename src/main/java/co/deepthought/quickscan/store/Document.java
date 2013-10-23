@@ -50,9 +50,6 @@ public class Document {
         this.scores.add(score);
     }
 
-    public void deprecate() {
-        this.deprecated = true;
-    }
 
     public List<Field> getFields() {
         return this.fields;
@@ -131,6 +128,10 @@ public class Document {
 
     public String getShardId() {
         return this.shardId;
+    }
+
+    public void setDeprecated(final boolean deprecated) {
+        this.deprecated = deprecated;
     }
 
 }

@@ -38,7 +38,7 @@ public class DeprecateService
             for(final String id : input.ids) {
                 final Document document = this.documentStore.getById(id);
                 if(document != null) {
-                    document.deprecate();
+                    document.setDeprecated(true);
                 }
                 this.documentStore.persist(document);
             }

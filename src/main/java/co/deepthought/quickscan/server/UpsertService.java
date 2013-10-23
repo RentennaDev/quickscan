@@ -41,6 +41,7 @@ public class UpsertService
     @Override
     public ServiceSuccess handle(final Input input) throws ServiceFailure {
         try {
+            input.document.setDeprecated(false);
             this.documentStore.persist(input.document);
             return new ServiceSuccess();
         } catch (DatabaseException e) {
