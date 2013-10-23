@@ -53,7 +53,7 @@ public class SearchServer extends AbstractHandler {
 
         this.services = new HashMap<>();
         this.services.put("/clean/", new CleanService(docStore));
-        this.services.put("/delete/", new DeprecateService(docStore));
+        this.services.put("/deprecate/", new DeprecateService(docStore));
         this.services.put("/get/", new GetService(manager));
         this.services.put("/index/", new IndexService(manager));
         this.services.put("/search/", new SearchService(manager));

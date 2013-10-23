@@ -49,14 +49,18 @@ public class DocumentStore {
 
     public void clean() throws DatabaseException {
         // probably a very slow way to do this...
-        final EntityCursor<Document> cursor = this.resultIndex.entities();
+        final Transaction txn = this.environment.beginTransaction(null, null);
+        final EntityCursor<Document> cursor = this.resultIndex.entities(txn, null);
         try {
             for(final Document document : cursor) {
                 cursor.delete();
             }
-        }
-        finally {
             cursor.close();
+            txn.commit();
+        }
+        catch (Exception e) {
+            cursor.close();
+            txn.abort();
         }
     }
 

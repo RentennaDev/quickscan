@@ -37,7 +37,7 @@ public class SearcherTest {
         assertEquals(2, normalized.length);
         assertEquals(0x1L, normalized[0][0]);
         assertEquals(0x0L, normalized[0][1]);
-        assertEquals(0x11L, normalized[0][2]);
+        assertEquals(0x5L, normalized[0][2]);
         assertEquals(0x2L, normalized[1][0]);
         assertEquals(0x0L, normalized[1][1]);
         assertEquals(0x2L, normalized[1][2]);
