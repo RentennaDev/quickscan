@@ -71,10 +71,8 @@ public class DocumentStore {
     public Set<String> getDistinctShardIds() throws DatabaseException {
         final Set<String> result = new HashSet<>();
         final EntityCursor<String> keyCursor = this.shardIndex.keys();
-        System.out.println("iterating over keys...");
         try {
             for(final String key : keyCursor) {
-                System.out.println(key);
                 result.add(key);
             }
             return result;
@@ -89,7 +87,14 @@ public class DocumentStore {
     }
 
     public void persist(final Document document) throws DatabaseException {
-        this.resultIndex.put(document);
+        final Transaction txn = this.environment.beginTransaction(null, null);
+        try {
+            this.resultIndex.put(txn, document);
+            txn.commit();
+        }
+        catch(Exception e) {
+            txn.abort();
+        }
     }
 
 }
