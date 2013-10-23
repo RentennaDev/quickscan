@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 /**
  * JSON-serializable class to indicate a failure.

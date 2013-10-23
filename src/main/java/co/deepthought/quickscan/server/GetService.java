@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 import co.deepthought.quickscan.index.SearchResult;
 import co.deepthought.quickscan.index.SearcherManager;
@@ -43,7 +43,7 @@ public class GetService
         try {
             final SearchResult result = this.manager.getSearchResult(input.id);
             if(result == null) {
-                throw new ServiceFailure("result not indexed");
+                throw new ServiceFailure("document not indexed");
             }
             else {
                 final Output output = new Output();

@@ -1,8 +1,6 @@
 package co.deepthought.quickscan.index;
 
 import co.deepthought.quickscan.store.Document;
-import co.deepthought.quickscan.store.HavingFields;
-import co.deepthought.quickscan.store.Result;
 
 import java.util.*;
 
@@ -29,65 +27,37 @@ public class IndexNormalizer {
         return this.resultIds.size();
     }
 
-    public void index(final Result result) {
-        this.indexResult(result);
-        for(final Document document : result.getDocuments()) {
-            this.indexDocument(result, document);
-        }
+    public void index(final Document document) {
+        this.indexResult(document);
     }
 
-    private void indexResult(final Result result) {
-        this.indexResultId(result);
-        this.indexFields(result);
-        this.indexScores(false, result);
-        this.indexTags(false, result);
+    private void indexResult(final Document document) {
+        this.indexResultId(document);
+        this.indexFields(document);
+        this.indexScores(document);
+        this.indexTags(document);
     }
 
-    private void indexDocument(final Result result, final Document document) {
-        this.indexResultId(result);
-        this.indexFields(result, document);
-        this.indexScores(true, result, document);
-        this.indexTags(true, result, document);
+    private void indexResultId(final Document document) {
+        this.resultIds.add(document.getId());
     }
 
-    private void indexResultId(final Result result) {
-        this.resultIds.add(result.getId());
-    }
-
-    private void indexFields(final HavingFields... items) {
+    private void indexFields(final Document item) {
         final Map<String, Double> fields = new HashMap<>();
-        for(final HavingFields item : items) {
-            fields.putAll(item.getFieldValues());
-        }
+        fields.putAll(item.getFieldValues());
         this.minFields.add(this.indexMap.normalizeFields(fields, Double.NEGATIVE_INFINITY));
         this.maxFields.add(this.indexMap.normalizeFields(fields, Double.POSITIVE_INFINITY));
     }
 
-    private void indexScores(final boolean doc, final HavingFields... items) {
+    private void indexScores(final Document item) {
         final Map<String, Double> scores = new HashMap<>();
-        if(doc) {
-            scores.put("_doc", 1.0);
-        }
-        else {
-            scores.put("_doc", 0.0);
-        }
-        for(final HavingFields item : items) {
-            scores.putAll(item.getScoreValues());
-        }
+        scores.putAll(item.getScoreValues());
         this.scores.add(this.indexMap.normalizeScores(scores, -1, true));
     }
 
-    private void indexTags(final boolean doc, final HavingFields... items) {
+    private void indexTags(final Document item) {
         final Set<String> tagNames = new HashSet<>();
-        if(doc) {
-            tagNames.add("_doc");
-        }
-        else {
-            tagNames.add("_nodoc");
-        }
-        for(final HavingFields item : items) {
-            tagNames.addAll(item.getTagNames());
-        }
+        tagNames.addAll(item.getTagNames());
         this.tags.add(this.indexMap.normalizeTags(tagNames));
     }
 

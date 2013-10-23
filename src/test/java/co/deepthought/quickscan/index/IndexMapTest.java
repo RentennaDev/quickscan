@@ -94,9 +94,8 @@ public class IndexMapTest {
         fields.put("score-1", 5.0);
         fields.put("score-3", 7.5);
         fields.put("score-100", 0.2);
-        fields.put("_doc", 0.0);
         final double[] normalized = this.map.normalizeScores(fields, 0, true);
-        assertArrayEquals(new double[] {0.99, 0.5, 0, 0.25, 0, 0.01}, normalized, 0);
+        assertArrayEquals(new double[] {0.99, 0.5, 0, 0.25, 0}, normalized, 0);
     }
 
     @Test
@@ -106,7 +105,7 @@ public class IndexMapTest {
         assertEquals(3, normalized.length);
         assertEquals(0x0000000000000401L, normalized[0]);
         assertEquals(0x0200000000010000L, normalized[1]);
-        assertEquals(0x0000000000000012L, normalized[2]);
+        assertEquals(0x0000000000000006L, normalized[2]);
     }
 
 }

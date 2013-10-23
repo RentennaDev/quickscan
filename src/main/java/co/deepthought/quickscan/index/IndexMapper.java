@@ -39,16 +39,16 @@ public class IndexMapper {
         return this.scores;
     }
 
-    public void inspect(final Result result) {
-        for(final Field field : result.getAllFields()) {
+    public void inspect(final Document document) {
+        for(final Field field : document.getFields()) {
             this.distinctFields.add(field.getName());
         }
 
-        for(final Tag tag : result.getAllTags()) {
+        for(final Tag tag : document.getTags()) {
             this.distinctTags.add(tag.getName());
         }
 
-        for(final Score score: result.getAllScores()) {
+        for(final Score score: document.getScores()) {
             this.distinctScores.add(score.getName());
             if(!score.getPhantom()) {
                 this.scores.put(score.getName(), score.getValue());

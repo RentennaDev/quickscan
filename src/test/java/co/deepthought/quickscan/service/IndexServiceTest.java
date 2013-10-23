@@ -1,9 +1,11 @@
 package co.deepthought.quickscan.service;
 
 import co.deepthought.quickscan.index.SearcherManager;
-import co.deepthought.quickscan.store.Result;
-import co.deepthought.quickscan.store.ResultStore;
-import co.deepthought.quickscan.store.ResultTest;
+import co.deepthought.quickscan.server.IndexService;
+import co.deepthought.quickscan.server.ServiceFailure;
+import co.deepthought.quickscan.store.Document;
+import co.deepthought.quickscan.store.DocumentStore;
+import co.deepthought.quickscan.store.DocumentTest;
 import com.sleepycat.je.DatabaseException;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,11 +20,11 @@ public class IndexServiceTest {
 
     @Before
     public void setUp() throws DatabaseException {
-        final ResultStore store = new ResultStore(":tmp");
-        for(final Result result : ResultTest.mock()) {
-            store.persist(result);
+        final DocumentStore store = new DocumentStore(":tmp");
+        for(final Document document : DocumentTest.mock()) {
+            store.persist(document);
         }
-        store.persist(new Result("e", "e", null));
+        store.persist(new Document("e", "e", null));
         this.manager = new SearcherManager(store);
         this.service = new IndexService(this.manager);
     }

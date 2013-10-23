@@ -1,9 +1,10 @@
 package co.deepthought.quickscan.service;
 
+import co.deepthought.quickscan.server.DeprecateService;
+import co.deepthought.quickscan.server.ServiceFailure;
 import co.deepthought.quickscan.store.Document;
-import co.deepthought.quickscan.store.Result;
-import co.deepthought.quickscan.store.ResultStore;
-import co.deepthought.quickscan.store.ResultTest;
+import co.deepthought.quickscan.store.DocumentStore;
+import co.deepthought.quickscan.store.DocumentTest;
 import com.sleepycat.je.DatabaseException;
 import org.junit.Test;
 
@@ -17,17 +18,17 @@ public class DeleteServiceTest {
 
     @Test
     public void testDeleting() throws DatabaseException, ServiceFailure {
-        final ResultStore store = new ResultStore(":tmp");
-        for(final Result result : ResultTest.mock()) {
-            store.persist(result);
+        final DocumentStore store = new DocumentStore(":tmp");
+        for(final Document document : DocumentTest.mock()) {
+            store.persist(document);
         }
-        final DeleteService service = new DeleteService(store);
-        final DeleteService.Input input = new DeleteService.Input();
+        final DeprecateService service = new DeprecateService(store);
+        final DeprecateService.Input input = new DeprecateService.Input();
         input.id = "c";
         service.handle(input);
         final Set<String> existing = new HashSet<>();
-        for(final Result result : store.getByShardId("a")) {
-            existing.add(result.getId());
+        for(final Document document : store.getByShardId("a")) {
+            existing.add(document.getId());
         }
         assertTrue(existing.contains("a"));
         assertFalse(existing.contains("c"));

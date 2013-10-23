@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 /**
  * JSON-Serializable class to indicate success of a write-only operation.

@@ -1,8 +1,8 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.ResultStore;
-import co.deepthought.quickscan.store.Result;
-import co.deepthought.quickscan.store.ResultTest;
+import co.deepthought.quickscan.store.DocumentStore;
+import co.deepthought.quickscan.store.Document;
+import co.deepthought.quickscan.store.DocumentTest;
 import com.sleepycat.je.DatabaseException;
 import org.junit.Test;
 
@@ -14,9 +14,9 @@ public class SearcherManagerTest {
 
     @Test
     public void testIndexing() throws DatabaseException {
-        final ResultStore store = new ResultStore(":tmp");
-        for(final Result result : ResultTest.mock()) {
-            store.persist(result);
+        final DocumentStore store = new DocumentStore(":tmp");
+        for(final Document document : DocumentTest.mock()) {
+            store.persist(document);
         }
         final SearcherManager manager = new SearcherManager(store);
         manager.index();
@@ -35,10 +35,10 @@ public class SearcherManagerTest {
             0);
         final Set<SearchResult> resultSet = new HashSet<>(results.getResults());
         final Set<SearchResult> expected = new HashSet<>();
-        expected.add(new SearchResult("a", null, null));
+        // a is missing because it has no scores to use for ranking!
         expected.add(new SearchResult("b", null, null));
         expected.add(new SearchResult("c", null, null));
-        expected.add(new SearchResult("d", null, null)); // equality only counts resultIds
+        expected.add(new SearchResult("d", null, null));
         assertEquals(expected, resultSet);
     }
 

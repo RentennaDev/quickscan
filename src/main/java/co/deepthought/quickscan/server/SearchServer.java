@@ -1,8 +1,7 @@
 package co.deepthought.quickscan.server;
 
 import co.deepthought.quickscan.index.SearcherManager;
-import co.deepthought.quickscan.service.*;
-import co.deepthought.quickscan.store.ResultStore;
+import co.deepthought.quickscan.store.DocumentStore;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -48,13 +47,13 @@ public class SearchServer extends AbstractHandler {
         final long start = System.currentTimeMillis();
 
         // TODO: make me configurable
-        final ResultStore docStore = new ResultStore(dbFile);
+        final DocumentStore docStore = new DocumentStore(dbFile);
         final SearcherManager manager = new SearcherManager(docStore);
         manager.index();
 
         this.services = new HashMap<>();
         this.services.put("/clean/", new CleanService(docStore));
-        this.services.put("/delete/", new DeleteService(docStore));
+        this.services.put("/delete/", new DeprecateService(docStore));
         this.services.put("/get/", new GetService(manager));
         this.services.put("/index/", new IndexService(manager));
         this.services.put("/search/", new SearchService(manager));

@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 /**
  * An abstract class providing the ability to validate input.

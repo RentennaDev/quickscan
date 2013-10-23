@@ -8,18 +8,18 @@ import java.io.File;
 import java.util.*;
 
 /**
- *  ResultStore persists denormalized documents to disk, using BerkeleyDB for portable storage.
+ *  DocumentStore persists denormalized documents to disk, using BerkeleyDB for portable storage.
  */
-public class ResultStore {
+public class DocumentStore {
 
-    final static Logger LOGGER = Logger.getLogger(ResultStore.class.getCanonicalName());
+    final static Logger LOGGER = Logger.getLogger(DocumentStore.class.getCanonicalName());
 
     final private Environment environment;
     final private EntityStore store;
-    final private PrimaryIndex<String, Result> resultIndex;
-    final private SecondaryIndex<String, String, Result> shardIndex;
+    final private PrimaryIndex<String, Document> resultIndex;
+    final private SecondaryIndex<String, String, Document> shardIndex;
 
-    public ResultStore(final String filePath) throws DatabaseException {
+    public DocumentStore(final String filePath) throws DatabaseException {
         final EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(true);
@@ -43,15 +43,15 @@ public class ResultStore {
         storeConfig.setTransactional(true);
         this.store = new EntityStore(this.environment, "store", storeConfig);
 
-        this.resultIndex = this.store.getPrimaryIndex(String.class, Result.class);
+        this.resultIndex = this.store.getPrimaryIndex(String.class, Document.class);
         this.shardIndex = this.store.getSecondaryIndex(this.resultIndex, String.class, "shardId");
     }
 
     public void clean() throws DatabaseException {
         // probably a very slow way to do this...
-        final EntityCursor<Result> cursor = this.resultIndex.entities();
+        final EntityCursor<Document> cursor = this.resultIndex.entities();
         try {
-            for(final Result result : cursor) {
+            for(final Document document : cursor) {
                 cursor.delete();
             }
         }
@@ -60,11 +60,7 @@ public class ResultStore {
         }
     }
 
-    public void deleteById(final String id) throws DatabaseException {
-        this.resultIndex.delete(id);
-    }
-
-    public EntityCursor<Result> getByShardId(final String shardId) throws DatabaseException {
+    public EntityCursor<Document> getByShardId(final String shardId) throws DatabaseException {
         return this.shardIndex.subIndex(shardId).entities();
     }
 
@@ -82,12 +78,12 @@ public class ResultStore {
         }
     }
 
-    public Result getById(final String id) throws DatabaseException {
+    public Document getById(final String id) throws DatabaseException {
         return this.resultIndex.get(id);
     }
 
-    public void persist(final Result result) throws DatabaseException {
-        this.resultIndex.put(result);
+    public void persist(final Document document) throws DatabaseException {
+        this.resultIndex.put(document);
     }
 
 }

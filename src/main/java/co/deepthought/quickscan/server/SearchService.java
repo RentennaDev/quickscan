@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 import co.deepthought.quickscan.index.PaginatedResults;
 import co.deepthought.quickscan.index.SearchResult;

@@ -1,4 +1,4 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;

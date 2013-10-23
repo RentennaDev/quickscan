@@ -1,5 +1,8 @@
 package co.deepthought.quickscan.service;
 
+import co.deepthought.quickscan.server.BaseService;
+import co.deepthought.quickscan.server.ServiceFailure;
+import co.deepthought.quickscan.server.Validated;
 import com.google.gson.Gson;
 import org.junit.Test;
 

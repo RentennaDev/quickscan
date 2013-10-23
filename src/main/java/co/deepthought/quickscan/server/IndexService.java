@@ -1,23 +1,27 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
-import co.deepthought.quickscan.store.ResultStore;
+import co.deepthought.quickscan.index.SearcherManager;
 import com.sleepycat.je.DatabaseException;
 
 /**
- * A service deleting documents from the store.
+ * A service for indexing a shard and hotswapping it.
  */
-public class CleanService
-        extends BaseService<CleanService.Input, ServiceSuccess> {
+public class IndexService
+        extends BaseService<IndexService.Input, ServiceSuccess>  {
+
+    private final SearcherManager manager;
 
     public static class Input extends Validated {
+
+        public String shardId;
+
         @Override
         public void validate() throws ServiceFailure {}
+
     }
 
-    private final ResultStore resultStore;
-
-    public CleanService(final ResultStore resultStore) {
-        this.resultStore = resultStore;
+    public IndexService(final SearcherManager manager) {
+        this.manager = manager;
     }
 
     @Override
@@ -28,12 +32,16 @@ public class CleanService
     @Override
     public ServiceSuccess handle(final Input input) throws ServiceFailure {
         try {
-            this.resultStore.clean();
+            if(input.shardId == null) {
+                this.manager.index();
+            }
+            else {
+                this.manager.indexShard(input.shardId);
+            }
             return new ServiceSuccess();
         } catch (DatabaseException e) {
             // this is unlikely, why would this be a checked exception?
             throw new ServiceFailure("database error");
         }
     }
-
 }

@@ -1,27 +1,23 @@
-package co.deepthought.quickscan.service;
+package co.deepthought.quickscan.server;
 
-import co.deepthought.quickscan.store.ResultStore;
+import co.deepthought.quickscan.store.DocumentStore;
 import com.sleepycat.je.DatabaseException;
 
 /**
  * A service deleting documents from the store.
  */
-public class DeleteService
-        extends BaseService<DeleteService.Input, ServiceSuccess> {
+public class CleanService
+        extends BaseService<CleanService.Input, ServiceSuccess> {
 
     public static class Input extends Validated {
-        public String id;
-
         @Override
-        public void validate() throws ServiceFailure {
-            this.validateNonNull(this.id, "id");
-        }
+        public void validate() throws ServiceFailure {}
     }
 
-    private final ResultStore resultStore;
+    private final DocumentStore documentStore;
 
-    public DeleteService(final ResultStore resultStore) {
-        this.resultStore = resultStore;
+    public CleanService(final DocumentStore documentStore) {
+        this.documentStore = documentStore;
     }
 
     @Override
@@ -32,7 +28,7 @@ public class DeleteService
     @Override
     public ServiceSuccess handle(final Input input) throws ServiceFailure {
         try {
-            this.resultStore.deleteById(input.id);
+            this.documentStore.clean();
             return new ServiceSuccess();
         } catch (DatabaseException e) {
             // this is unlikely, why would this be a checked exception?

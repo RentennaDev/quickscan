@@ -1,14 +1,14 @@
 package co.deepthought.quickscan.index;
 
-import co.deepthought.quickscan.store.Result;
-import co.deepthought.quickscan.store.ResultStore;
+import co.deepthought.quickscan.store.Document;
+import co.deepthought.quickscan.store.DocumentStore;
 import com.sleepycat.je.DatabaseException;
 import org.apache.log4j.Logger;
 
 import java.util.*;
 
 /**
- * Maintains both an IndexMap and an IndexShard and can perform searches on the dataset, yielding result ids.
+ * Maintains both an IndexMap and an IndexShard and can perform searches on the dataset, yielding document ids.
  */
 public class Searcher {
 
@@ -16,17 +16,17 @@ public class Searcher {
 
     private final IndexMap indexMap;
     private final IndexShard indexShard;
-    private final ResultStore resultStore;
+    private final DocumentStore documentStore;
 
-    public Searcher(final IndexMap indexMap, final IndexShard indexShard, final ResultStore resultStore) {
+    public Searcher(final IndexMap indexMap, final IndexShard indexShard, final DocumentStore documentStore) {
         this.indexMap = indexMap;
         this.indexShard = indexShard;
-        this.resultStore = resultStore;
+        this.documentStore = documentStore;
     }
 
-    public SearchResult getSearchResult(final Result result) {
-        final Map<String, Double> projectedScores = this.indexMap.projectScores(result.getScoreValues());
-        return new SearchResult(result.getId(), result.getPayload(), projectedScores);
+    public SearchResult getSearchResult(final Document document) {
+        final Map<String, Double> projectedScores = this.indexMap.projectScores(document.getScoreValues());
+        return new SearchResult(document.getId(), document.getPayload(), projectedScores);
     }
 
     public PaginatedResults<SearchResult> search(
@@ -52,7 +52,7 @@ public class Searcher {
         int count = 0;
         for(final String resultId : searchResults.getResults()) {
             if(count >= skip) {
-                results.add(this.getSearchResult(this.resultStore.getById(resultId)));
+                results.add(this.getSearchResult(this.documentStore.getById(resultId)));
             }
             count++;
         }
