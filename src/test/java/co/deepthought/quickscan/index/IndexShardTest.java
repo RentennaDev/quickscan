@@ -241,7 +241,6 @@ public class IndexShardTest {
         buckets[0].add("A");
         buckets[0].add("B");
         buckets[1].add("C");
-        buckets[3].add("B");
         buckets[3].add("D");
         final PaginatedResults<String> result = this.shard.trimBuckets(buckets, 100);
         final String[] expected = new String[] {"A", "B", "C", "D"};
